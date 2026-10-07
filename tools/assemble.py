@@ -109,8 +109,8 @@ root_region = [min(r[0] for r in regions), min(r[1] for r in regions), max(r[2] 
                max(r[3] for r in regions), min(r[4] for r in regions), max(r[5] for r in regions)]
 master = {"asset": {"version": "1.1", "generator": "ubdc assemble.py",
                     "extras": {"source": "UBDC Glasgow 3D building model, doi:10.5281/zenodo.15000747"}},
-          "geometricError": 20000.0,
-          "root": {"boundingVolume": {"region": root_region}, "geometricError": 20000.0, "refine": "ADD",
+          "geometricError": 1000000.0,
+          "root": {"boundingVolume": {"region": root_region}, "geometricError": 1000000.0, "refine": "ADD",
                    "children": children}}
 with open(os.path.join(TILES_DIR, "tileset.json"), "w") as f:
     json.dump(master, f, separators=(",", ":"))

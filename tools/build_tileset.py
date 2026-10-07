@@ -595,7 +595,9 @@ def main():
     ap.add_argument("--coarse-cell", type=float, default=625.0, help="LoD1 cell size in metres (multiple of --cell)")
     ap.add_argument("--lod1-geometric-error", type=float, default=50.0,
                     help="geometricError of LoD1 tiles that have LoD2 children (controls when LoD2 loads)")
-    ap.add_argument("--root-geometric-error", type=float, default=2000.0)
+    ap.add_argument("--root-geometric-error", type=float, default=1000000.0,
+                    help="root geometricError; huge so the root always refines to the LoD1 level "
+                         "(the viewer's 'LoD1 only' mode relies on this)")
     ap.add_argument("--no-flatten", action="store_true", help="keep ODN heights instead of dropping buildings to height 0")
     ap.add_argument("--no-compress", action="store_true", help="skip meshopt compression (debugging)")
     ap.add_argument("--lod1-outline-tolerance", type=float, default=0.3,

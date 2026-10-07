@@ -109,7 +109,7 @@
 
 <script>
 (async function () {
-  const DATA_VERSION = "2026-10-07.7";          // bump after regenerating tiles (busts caches)
+  const DATA_VERSION = "2026-10-07.8";          // bump after regenerating tiles (busts caches)
   const TILESET_URL = "tiles/tileset.json?v=" + DATA_VERSION;
   const SUMMARY_URL = "tiles/summary.json?v=" + DATA_VERSION;
   const ZENODO_API = "https://zenodo.org/api/records/15000747";
@@ -204,7 +204,9 @@
     render();
   }
   $("c-colour").addEventListener("change", e => applyColour(e.target.value));
-  $("c-detail").addEventListener("change", e => { tileset.maximumScreenSpaceError = e.target.value === "lod1" ? 1e6 : 16; render(); });
+  // "LoD1 only": a screen-space-error threshold the LoD1 tiles (geometricError 50 m) never exceed,
+  // while the tile roots (geometricError 1e6) always do, so the coarse level stays on screen.
+  $("c-detail").addEventListener("change", e => { tileset.maximumScreenSpaceError = e.target.value === "lod1" ? 1e5 : 16; render(); });
   applyColour("height");
 
   // ---------------------------------------------------------------- picking
