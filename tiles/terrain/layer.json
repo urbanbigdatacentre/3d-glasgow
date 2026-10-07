@@ -1,0 +1,144 @@
+{
+ "tilejson": "2.1.0",
+ "name": "UBDC Glasgow DTM",
+ "version": "1.0.0",
+ "format": "quantized-mesh-1.0",
+ "scheme": "tms",
+ "projection": "EPSG:4326",
+ "bounds": [
+  -180,
+  -90,
+  180,
+  90
+ ],
+ "tiles": [
+  "{z}/{x}/{y}.terrain?v={version}"
+ ],
+ "minzoom": 0,
+ "maxzoom": 14,
+ "attribution": "Terrain: UBDC Glasgow 0.5 m LiDAR DTM (doi:10.5281/zenodo.13273124, CC BY 4.0); surroundings: Copernicus DEM GLO-30",
+ "available": [
+  [
+   {
+    "startX": 0,
+    "startY": 0,
+    "endX": 1,
+    "endY": 0
+   }
+  ],
+  [
+   {
+    "startX": 1,
+    "startY": 1,
+    "endX": 1,
+    "endY": 1
+   }
+  ],
+  [
+   {
+    "startX": 3,
+    "startY": 3,
+    "endX": 3,
+    "endY": 3
+   }
+  ],
+  [
+   {
+    "startX": 7,
+    "startY": 6,
+    "endX": 7,
+    "endY": 6
+   }
+  ],
+  [
+   {
+    "startX": 15,
+    "startY": 12,
+    "endX": 15,
+    "endY": 13
+   }
+  ],
+  [
+   {
+    "startX": 30,
+    "startY": 25,
+    "endX": 31,
+    "endY": 26
+   }
+  ],
+  [
+   {
+    "startX": 61,
+    "startY": 51,
+    "endX": 63,
+    "endY": 52
+   }
+  ],
+  [
+   {
+    "startX": 123,
+    "startY": 102,
+    "endX": 126,
+    "endY": 104
+   }
+  ],
+  [
+   {
+    "startX": 247,
+    "startY": 205,
+    "endX": 252,
+    "endY": 209
+   }
+  ],
+  [
+   {
+    "startX": 494,
+    "startY": 410,
+    "endX": 504,
+    "endY": 419
+   }
+  ],
+  [
+   {
+    "startX": 989,
+    "startY": 820,
+    "endX": 1009,
+    "endY": 838
+   }
+  ],
+  [
+   {
+    "startX": 1993,
+    "startY": 1654,
+    "endX": 2006,
+    "endY": 1664
+   }
+  ],
+  [
+   {
+    "startX": 3986,
+    "startY": 3308,
+    "endX": 4013,
+    "endY": 3329
+   }
+  ],
+  [
+   {
+    "startX": 7987,
+    "startY": 6633,
+    "endX": 8010,
+    "endY": 6642
+   }
+  ],
+  [
+   {
+    "startX": 15975,
+    "startY": 13266,
+    "endX": 16021,
+    "endY": 13285
+   }
+  ]
+ ],
+ "extensions": [],
+ "description": "Built by tools/build_terrain.py: 5 m working resolution, Delatin error 0.5 m at level 14, heights ODN -> WGS84 ellipsoid via OSGM15"
+}

@@ -5,16 +5,16 @@
   660000
  ],
  "root_region": [
-  -0.07536936608541783,
-  0.9740902230382409,
-  -0.07392661294989875,
-  0.9749088394085172,
-  0.0,
-  71.9488
+  -0.07536911142275238,
+  0.9740901400445513,
+  -0.07392637208636331,
+  0.9749087551378341,
+  48.66352777504902,
+  158.58775964224225
  ],
- "flattened": true,
+ "flattened": false,
  "compressed": true,
- "crs_note": "Inverse of British National Grid + OSGB36 to WGS 84 (6) + axis order change (2D) (accuracy 2.0 m)",
+ "crs_note": "Inverse of British National Grid + OSGB36 to ETRS89 (2) + Inverse of ETRS89 to ODN height (2) + ETRS89 to WGS 84 (1) + axis order change (2D) (accuracy 1.038 m)",
  "height_bins": [
   0,
   3,
@@ -31,7 +31,7 @@
   "cells": 71,
   "triangles": 310256,
   "vertices": 171962,
-  "bytes": 1890924,
+  "bytes": 1864208,
   "height_mean_m": 6.522262560265172,
   "height_median_m": 6.21711888882,
   "height_hist": [
@@ -60,9 +60,9 @@
  "lod2": {
   "buildings": 8596,
   "cells": 255,
-  "triangles": 1128522,
+  "triangles": 1136265,
   "vertices": 3748625,
-  "bytes": 6122820,
+  "bytes": 6007368,
   "height_mean_m": 6.513910451791877,
   "height_median_m": 6.21297192516,
   "height_hist": [
@@ -88,5 +88,5 @@
    665055.472100001
   ]
  },
- "built": "2026-10-07 17:17"
+ "built": "2026-10-07 19:49"
 }

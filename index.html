@@ -132,21 +132,22 @@
   <div class="foot">
     Data: Li, Q., Zhao, Q., Quintas Zon, M., Jablon, P. E., Wang, M., Hu, C., Ou, Y. &amp; Sen, S. (2025). <em>Large-scale 3D building and tree datasets constructed from airborne LiDAR point clouds in Glasgow, UK</em> (v4). Zenodo. <a href="https://doi.org/10.5281/zenodo.15000747" target="_blank" rel="noopener">doi:10.5281/zenodo.15000747</a> · CC BY 4.0.<br>
     Downloads: <a href="https://zenodo.org/records/15000747/files/lod2_3d_building_model.zip?download=1">LoD2 (926 MB)</a> · <a href="https://zenodo.org/records/15000747/files/lod1_3d_building_model.zip?download=1">LoD1 (365 MB)</a> · <a href="https://zenodo.org/records/15000747/files/building_footprints.zip?download=1">footprints (20 MB)</a><br>
-    Basemap © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors. Viewer: CesiumJS. Buildings are shown at a flattened ground level (no terrain).<br>
+    Basemap © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors. Viewer: CesiumJS. Terrain: UBDC 0.5 m LiDAR DTM (<a href="https://doi.org/10.5281/zenodo.13273124" target="_blank" rel="noopener">doi:10.5281/zenodo.13273124</a>), surroundings from Copernicus DEM GLO-30.<br>
     Code and tile pipeline: <a href="https://github.com/urbanbigdatacentre/3d-glasgow" target="_blank" rel="noopener">github.com/urbanbigdatacentre/3d-glasgow</a>
   </div>
 </div>
 
 <script>
 (async function () {
-  const DATA_VERSION = "2026-10-07.8";          // bump after regenerating tiles (busts caches)
+  const DATA_VERSION = "2026-10-08.1";          // bump after regenerating tiles (busts caches)
   const TILESET_URL = "tiles/tileset.json?v=" + DATA_VERSION;
   const SUMMARY_URL = "tiles/summary.json?v=" + DATA_VERSION;
   const ZENODO_API = "https://zenodo.org/api/records/15000747";
   // Optional keys. Fill in and push: extra basemaps appear in the Basemap menu automatically.
   //  - OS_MAPS_API_KEY: free "OS OpenData" plan at https://osdatahub.os.uk (Light / Road / Outdoor styles)
   //  - CESIUM_ION_TOKEN: free Cesium ion account (Bing aerial imagery; also needed for Cesium World Terrain)
-  const CONFIG = { OS_MAPS_API_KEY: "", CESIUM_ION_TOKEN: "" };
+  const CONFIG = { OS_MAPS_API_KEY: "", CESIUM_ION_TOKEN: "",
+                   TERRAIN_URL: "tiles/terrain" };          // self-hosted quantized-mesh terrain ("" = flat globe)
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
                   set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
   const ZENODO_FALLBACK = { downloads: 2312, views: 3818, asof: "2026-10-07" };
@@ -179,6 +180,13 @@
     requestRenderMode: true, maximumRenderTimeChange: Infinity,
   });
   const scene = viewer.scene;
+  if (CONFIG.TERRAIN_URL) {
+    try {
+      viewer.terrainProvider = await Cesium.CesiumTerrainProvider.fromUrl(CONFIG.TERRAIN_URL + "?v=" + DATA_VERSION, { requestVertexNormals: false });
+      // depthTestAgainstTerrain stays off: coarse terrain levels carry metre-scale error and would swallow
+      // low buildings when zoomed out; without it buildings always draw on top of the ground.
+    } catch (e) { console.warn("terrain unavailable, using a flat globe", e); }
+  }
   scene.globe.baseColor = Cesium.Color.fromCssColorString("#dfe6ee");
   scene.skyAtmosphere.show = false; scene.fog.enabled = false; scene.globe.showGroundAtmosphere = false;
   scene.highDynamicRange = false; scene.msaaSamples = 4; scene.globe.enableLighting = false;
@@ -390,7 +398,8 @@
   // on-screen navigation: orbit the point under the screen centre
   function orbit(dHeading, dPitch, zoomFactor) {
     const cam = viewer.camera, canvas = scene.canvas;
-    let target = cam.pickEllipsoid(new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2), scene.globe.ellipsoid);
+    const centre = new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2);
+    let target = scene.globe.pick(cam.getPickRay(centre), scene) || cam.pickEllipsoid(centre, scene.globe.ellipsoid);
     if (!target) {
       const c = cam.positionCartographic;
       target = Cesium.Cartesian3.fromRadians(c.longitude, c.latitude, 0);

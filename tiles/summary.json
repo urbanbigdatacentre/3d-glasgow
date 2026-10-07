@@ -5,11 +5,11 @@
  "totals": {
   "buildings": 119765,
   "buildings_lod2": 38165,
-  "triangles_lod1": 3633495,
-  "triangles_lod2": 3416608,
-  "mb_lod1": 23.4,
-  "mb_lod2": 20.2,
-  "mb_total": 43.6,
+  "triangles_lod1": 3640983,
+  "triangles_lod2": 3442759,
+  "mb_lod1": 23.0,
+  "mb_lod2": 19.8,
+  "mb_total": 42.8,
   "glbs": 1923,
   "footprint_km2": 39.36
  },
@@ -51,17 +51,17 @@
   "height_max_m": 92.3,
   "uid": "NS56SE_97",
   "tile": "NS56SE",
-  "lon": -4.25652,
-  "lat": 55.856593
+  "lon": -4.256505,
+  "lat": 55.856588
  },
  "root_region_deg": [
-  -4.41047,
-  55.77255,
-  -4.05591,
+  -4.41046,
+  55.77254,
+  -4.0559,
   55.93556
  ],
  "focus": {
-  "lon": -4.25551,
+  "lon": -4.2555,
   "lat": 55.8519
  },
  "per_tile": [
@@ -71,13 +71,13 @@
    "lod2": true,
    "median_height_m": 6.2,
    "footprint_km2": 2.957,
-   "mb": 6.0,
-   "centre_lon": -4.19933,
-   "centre_lat": 55.88062,
+   "mb": 5.9,
+   "centre_lon": -4.19932,
+   "centre_lat": 55.88061,
    "region_deg": [
-    -4.24066,
-    55.85768,
-    -4.15801,
+    -4.24064,
+    55.85767,
+    -4.15799,
     55.90355
    ],
    "tallest_m": 75.1,
@@ -89,14 +89,14 @@
    "lod2": true,
    "median_height_m": 6.3,
    "footprint_km2": 4.078,
-   "mb": 6.6,
-   "centre_lon": -4.19719,
-   "centre_lat": 55.83606,
+   "mb": 6.5,
+   "centre_lon": -4.19717,
+   "centre_lat": 55.83605,
    "region_deg": [
-    -4.23847,
-    55.81289,
-    -4.1559,
-    55.85923
+    -4.23846,
+    55.81288,
+    -4.15589,
+    55.85922
    ],
    "tallest_m": 51.7,
    "tallest_uid": "NS66SW_2137"
@@ -108,13 +108,13 @@
    "median_height_m": 5.8,
    "footprint_km2": 2.244,
    "mb": 1.8,
-   "centre_lon": -4.11683,
+   "centre_lon": -4.11682,
    "centre_lat": 55.83732,
    "region_deg": [
-    -4.15832,
-    55.81433,
-    -4.07534,
-    55.86032
+    -4.15831,
+    55.81432,
+    -4.07533,
+    55.86031
    ],
    "tallest_m": 64.1,
    "tallest_uid": "NS66SE_4275"
@@ -125,14 +125,14 @@
    "lod2": false,
    "median_height_m": 5.0,
    "footprint_km2": 2.583,
-   "mb": 2.0,
-   "centre_lon": -4.27483,
+   "mb": 1.9,
+   "centre_lon": -4.27482,
    "centre_lat": 55.79306,
    "region_deg": [
-    -4.31584,
-    55.77336,
-    -4.23382,
-    55.81277
+    -4.31583,
+    55.77335,
+    -4.23381,
+    55.81276
    ],
    "tallest_m": 47.2,
    "tallest_uid": "NS55NE_2884"
@@ -143,13 +143,13 @@
    "lod2": false,
    "median_height_m": 6.2,
    "footprint_km2": 4.387,
-   "mb": 1.9,
-   "centre_lon": -4.35908,
+   "mb": 1.8,
+   "centre_lon": -4.35907,
    "centre_lat": 55.8781,
    "region_deg": [
-    -4.40136,
+    -4.40134,
     55.85501,
-    -4.31681,
+    -4.3168,
     55.90119
    ],
    "tallest_m": 64.6,
@@ -162,13 +162,13 @@
    "median_height_m": 6.3,
    "footprint_km2": 2.623,
    "mb": 1.7,
-   "centre_lon": -4.35632,
-   "centre_lat": 55.83319,
+   "centre_lon": -4.3563,
+   "centre_lat": 55.83318,
    "region_deg": [
-    -4.3974,
-    55.80981,
-    -4.31524,
-    55.85657
+    -4.39738,
+    55.8098,
+    -4.31523,
+    55.85656
    ],
    "tallest_m": 64.7,
    "tallest_uid": "NS56SW_9178"
@@ -180,12 +180,12 @@
    "median_height_m": 5.6,
    "footprint_km2": 2.224,
    "mb": 1.6,
-   "centre_lon": -4.36179,
-   "centre_lat": 55.91614,
+   "centre_lon": -4.36178,
+   "centre_lat": 55.91613,
    "region_deg": [
-    -4.40267,
+    -4.40265,
     55.89965,
-    -4.32092,
+    -4.32091,
     55.93262
    ],
    "tallest_m": 56.8,
@@ -197,13 +197,13 @@
    "lod2": true,
    "median_height_m": 6.2,
    "footprint_km2": 4.579,
-   "mb": 8.0,
-   "centre_lon": -4.27701,
+   "mb": 7.9,
+   "centre_lon": -4.277,
    "centre_lat": 55.83471,
    "region_deg": [
-    -4.31835,
-    55.81126,
-    -4.23568,
+    -4.31833,
+    55.81125,
+    -4.23567,
     55.85816
    ],
    "tallest_m": 92.3,
@@ -216,12 +216,12 @@
    "median_height_m": 5.7,
    "footprint_km2": 1.805,
    "mb": 1.4,
-   "centre_lon": -4.35436,
-   "centre_lat": 55.79193,
+   "centre_lon": -4.35435,
+   "centre_lat": 55.79192,
    "region_deg": [
-    -4.39543,
-    55.77255,
-    -4.31329,
+    -4.39542,
+    55.77254,
+    -4.31328,
     55.81131
    ],
    "tallest_m": 19.7,
@@ -233,14 +233,14 @@
    "lod2": true,
    "median_height_m": 6.5,
    "footprint_km2": 5.388,
-   "mb": 7.6,
-   "centre_lon": -4.27963,
+   "mb": 7.5,
+   "centre_lon": -4.27962,
    "centre_lat": 55.87914,
    "region_deg": [
-    -4.32096,
-    55.85588,
-    -4.2383,
-    55.90241
+    -4.32094,
+    55.85587,
+    -4.23829,
+    55.9024
    ],
    "tallest_m": 82.4,
    "tallest_uid": "NS56NE_5858"
@@ -252,12 +252,12 @@
    "median_height_m": 5.0,
    "footprint_km2": 1.091,
    "mb": 0.9,
-   "centre_lon": -4.20171,
-   "centre_lat": 55.91916,
+   "centre_lon": -4.20169,
+   "centre_lat": 55.91915,
    "region_deg": [
-    -4.24122,
+    -4.24121,
     55.90279,
-    -4.16219,
+    -4.16218,
     55.93552
    ],
    "tallest_m": 21.9,
@@ -270,12 +270,12 @@
    "median_height_m": 6.0,
    "footprint_km2": 1.374,
    "mb": 0.9,
-   "centre_lon": -4.11948,
+   "centre_lon": -4.11946,
    "centre_lat": 55.88006,
    "region_deg": [
-    -4.16017,
-    55.85884,
-    -4.07878,
+    -4.16016,
+    55.85883,
+    -4.07876,
     55.90129
    ],
    "tallest_m": 37.2,
@@ -288,12 +288,12 @@
    "median_height_m": 6.0,
    "footprint_km2": 0.912,
    "mb": 0.7,
-   "centre_lon": -4.19553,
-   "centre_lat": 55.79478,
+   "centre_lon": -4.19552,
+   "centre_lat": 55.79477,
    "region_deg": [
-    -4.23561,
+    -4.23559,
     55.7751,
-    -4.15546,
+    -4.15545,
     55.81445
    ],
    "tallest_m": 53.9,
@@ -306,12 +306,12 @@
    "median_height_m": 4.9,
    "footprint_km2": 0.734,
    "mb": 0.6,
-   "centre_lon": -4.28208,
+   "centre_lon": -4.28207,
    "centre_lat": 55.91749,
    "region_deg": [
-    -4.32256,
-    55.90134,
-    -4.2416,
+    -4.32255,
+    55.90133,
+    -4.24158,
     55.93364
    ],
    "tallest_m": 46.5,
@@ -324,12 +324,12 @@
    "median_height_m": 5.9,
    "footprint_km2": 0.648,
    "mb": 0.4,
-   "centre_lon": -4.06755,
-   "centre_lat": 55.83818,
+   "centre_lon": -4.06754,
+   "centre_lat": 55.83817,
    "region_deg": [
-    -4.07855,
+    -4.07853,
     55.8155,
-    -4.05656,
+    -4.05655,
     55.86085
    ],
    "tallest_m": 30.1,
@@ -342,13 +342,13 @@
    "median_height_m": 5.8,
    "footprint_km2": 0.425,
    "mb": 0.4,
-   "centre_lon": -4.1249,
-   "centre_lat": 55.80658,
+   "centre_lon": -4.12488,
+   "centre_lat": 55.80657,
    "region_deg": [
-    -4.156,
+    -4.15599,
     55.79825,
-    -4.09379,
-    55.81491
+    -4.09378,
+    55.8149
    ],
    "tallest_m": 33.5,
    "tallest_uid": "NS65NE_666"
@@ -360,13 +360,13 @@
    "median_height_m": 5.9,
    "footprint_km2": 0.271,
    "mb": 0.2,
-   "centre_lon": -4.40044,
+   "centre_lon": -4.40043,
    "centre_lat": 55.8322,
    "region_deg": [
-    -4.40579,
-    55.80972,
-    -4.3951,
-    55.85469
+    -4.40577,
+    55.80971,
+    -4.39508,
+    55.85468
    ],
    "tallest_m": 19.7,
    "tallest_uid": "NS46SE_352"
@@ -378,13 +378,13 @@
    "median_height_m": 6.0,
    "footprint_km2": 0.27,
    "mb": 0.2,
-   "centre_lon": -4.40287,
+   "centre_lon": -4.40286,
    "centre_lat": 55.87717,
    "region_deg": [
-    -4.4075,
+    -4.40749,
     55.85454,
-    -4.39825,
-    55.89981
+    -4.39824,
+    55.8998
    ],
    "tallest_m": 41.6,
    "tallest_uid": "NS46NE_792"
@@ -396,12 +396,12 @@
    "median_height_m": 5.9,
    "footprint_km2": 0.293,
    "mb": 0.2,
-   "centre_lon": -4.40561,
-   "centre_lat": 55.91514,
+   "centre_lon": -4.40559,
+   "centre_lat": 55.91513,
    "region_deg": [
-    -4.41047,
-    55.89932,
-    -4.40074,
+    -4.41046,
+    55.89931,
+    -4.40072,
     55.93096
    ],
    "tallest_m": 40.1,
@@ -414,12 +414,12 @@
    "median_height_m": 5.2,
    "footprint_km2": 0.161,
    "mb": 0.1,
-   "centre_lon": -4.15778,
-   "centre_lat": 55.92155,
+   "centre_lon": -4.15776,
+   "centre_lat": 55.92154,
    "region_deg": [
-    -4.16244,
+    -4.16242,
     55.90753,
-    -4.15312,
+    -4.15311,
     55.93556
    ],
    "tallest_m": 12.4,
@@ -432,12 +432,12 @@
    "median_height_m": 5.3,
    "footprint_km2": 0.133,
    "mb": 0.1,
-   "centre_lon": -4.06607,
+   "centre_lon": -4.06605,
    "centre_lat": 55.80951,
    "region_deg": [
-    -4.07622,
-    55.80323,
-    -4.05591,
+    -4.07621,
+    55.80322,
+    -4.0559,
     55.81579
    ],
    "tallest_m": 8.4,
@@ -450,12 +450,12 @@
    "median_height_m": 5.7,
    "footprint_km2": 0.111,
    "mb": 0.1,
-   "centre_lon": -4.3987,
-   "centre_lat": 55.80406,
+   "centre_lon": -4.39868,
+   "centre_lat": 55.80405,
    "region_deg": [
-    -4.4029,
-    55.79813,
-    -4.3945,
+    -4.40289,
+    55.79812,
+    -4.39448,
     55.80999
    ],
    "tallest_m": 13.0,
@@ -468,13 +468,13 @@
    "median_height_m": 5.6,
    "footprint_km2": 0.071,
    "mb": 0.1,
-   "centre_lon": -4.07016,
-   "centre_lat": 55.87822,
+   "centre_lon": -4.07014,
+   "centre_lat": 55.87821,
    "region_deg": [
-    -4.0806,
-    55.86065,
-    -4.05971,
-    55.89579
+    -4.08059,
+    55.86064,
+    -4.0597,
+    55.89578
    ],
    "tallest_m": 17.8,
    "tallest_uid": "NS76NW_329"

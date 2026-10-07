@@ -475,8 +475,12 @@ def build_level(buildings, lod, cell, x0, y0, out_dir, transformer, flatten, com
     owner = np.repeat(np.arange(nb), counts)
     zmin = np.full(nb, np.inf)
     np.minimum.at(zmin, owner, V[:, 2])
-    h = V[:, 2] - zmin[owner] if flatten else V[:, 2].copy()
-    lon, lat = transformer.transform(V[:, 0], V[:, 1])
+    if flatten:
+        h = V[:, 2] - zmin[owner]                        # every building sits on the ellipsoid (no terrain)
+        lon, lat = transformer.transform(V[:, 0], V[:, 1])
+    else:                                                # true ODN heights -> WGS84 ellipsoidal (for terrain)
+        lon, lat, h = transformer.transform(V[:, 0], V[:, 1], V[:, 2])
+    lon, lat, h = np.asarray(lon), np.asarray(lat), np.asarray(h)
     P = geodetic_to_ecef(lon, lat, h)
 
     bmin = np.full((nb, 2), np.inf)
@@ -614,7 +618,13 @@ def main():
     if abs(ratio - round(ratio)) > 1e-9:
         sys.exit("--coarse-cell must be a multiple of --cell")
     ratio = int(round(ratio))
-    tg = TransformerGroup("EPSG:27700", "EPSG:4326", always_xy=True)
+    if flatten:
+        tg = TransformerGroup("EPSG:27700", "EPSG:4326", always_xy=True)
+    else:
+        tg = TransformerGroup("EPSG:7405", "EPSG:4979", always_xy=True)   # BNG + ODN height -> WGS84 3D
+        if not tg.best_available:
+            sys.exit("--no-flatten needs the OSTN15/OSGM15 grids: tools/venv/bin/pyproj sync --file uk_os_OSTN15_NTv2_OSGBtoETRS "
+                     "&& tools/venv/bin/pyproj sync --file uk_os_OSGM15_GB")
     tr = tg.transformers[0]
     crs_note = "%s (accuracy %s m)" % (tr.description, tr.accuracy)
     schema = build_schema()

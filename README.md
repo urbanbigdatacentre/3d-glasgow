@@ -39,26 +39,47 @@ Per OS tile, `build_tileset.py` produces a two-level tileset with `REPLACE` refi
   building property table (`EXT_structural_metadata`: uid, mean/max/min/P90 height, ground level,
   footprint area and perimeter, LoD, source triangle count). No normals are stored; the viewer shades
   from screen-space derivatives in a custom shader.
-* Heights: buildings are dropped to ellipsoid height 0 (`--flatten` default) because the viewer has no
-  terrain yet. Rebuild with `--no-flatten` and add the ODN-to-ellipsoid geoid offset when adding terrain.
+* Heights: with `--no-flatten` (the deployed configuration) buildings keep their ODN heights, converted
+  to WGS84 ellipsoidal heights with OSTN15 + OSGM15, so they sit on the terrain tiles. The default
+  flattens every building to ellipsoid height 0 for a terrain-less globe.
 * Coordinates: EPSG:27700 to WGS84 with the transformation available to pyproj on the build machine
   (recorded in each `tileset.json` `asset.extras.crs_note`; the 2 m Helmert unless the OSTN15 grid is installed).
 
-## Rebuilding
+## Terrain
 
-One-time setup (macOS, Python 3.8+ with numpy, pyproj, shapely):
+`tools/build_terrain.py` turns the UBDC 0.5 m LiDAR DTM (Zenodo record 13273124, `DTM_5x5km.zip`,
+5.3 GB; `tools/fetch_dtm.py` downloads the 23 tiles individually) into Cesium quantized-mesh tiles
+under `tiles/terrain/` (TMS geodetic tiling, levels 0-14, Delatin meshing with a 0.5 m error bound
+at level 14). Outside the DTM, Copernicus DEM GLO-30 provides the surroundings, feathered over 400 m
+so the survey edge is not a cliff. Heights are converted from ODN to WGS84 ellipsoidal with PROJ's
+OSGM15 grid (about +54 m in Glasgow); the building tiles are built with `--no-flatten` so they use
+the same conversion and sit on the terrain.
 
 ```bash
+tools/venv/bin/python tools/fetch_dtm.py --out ../DTM_5x5km
+tools/venv/bin/python tools/build_terrain.py --dtm ../DTM_5x5km --out tiles/terrain --max-level 14 --base-error 0.5
+```
+
+## Rebuilding
+
+One-time setup (macOS; a Python 3.9+ virtualenv in `tools/venv`, gitignored):
+
+```bash
+python3 -m venv tools/venv
+tools/venv/bin/pip install numpy pyproj shapely scipy mapbox_earcut rasterio pydelatin quantized-mesh-encoder
+tools/venv/bin/pyproj sync --file uk_os_OSTN15_NTv2_OSGBtoETRS   # OS horizontal grid
+tools/venv/bin/pyproj sync --file uk_os_OSGM15_GB                 # OS geoid grid (ODN -> ellipsoid)
 sh tools/build_meshopt.sh                       # clones zeux/meshoptimizer and builds the dylib
-pip3 install --target tools/vendor/py mapbox_earcut   # polygon triangulation (earcut)
-rm -rf tools/vendor/py/numpy*                   # keep the environment's numpy
 ```
 
 Then, with the Zenodo data unpacked one level above this folder (`../lod1_3d_building_model`, `../lod2_3d_building_model`):
 
 ```bash
-sh tools/build_all.sh --workers 8               # ~10 minutes; writes tiles/
+PYTHON=tools/venv/bin/python sh tools/build_all.sh --no-flatten --workers 8   # ~5 minutes; writes tiles/
 ```
+
+(`--no-flatten` keeps real heights for use with the terrain; without it buildings are dropped to
+ellipsoid height 0 for a flat globe.)
 
 or a single tile:
 
@@ -87,8 +108,8 @@ then open http://localhost:8765/.
   (free OS OpenData plan at osdatahub.os.uk: OS Light / Road / Outdoor styles) and `CESIUM_ION_TOKEN`
   (free Cesium ion account: Bing aerial imagery, and Cesium World Terrain if terrain is added later).
   The chosen basemap and the panel state are remembered per browser.
-* Terrain: none yet. Options are Cesium World Terrain (ion token) or self-hosted quantized-mesh tiles
-  built from the UBDC 0.5 m DTM / OS Terrain 50. Either needs the tiles rebuilt with `--no-flatten`
-  plus the ODN-to-ellipsoid (OSGM15) height offset so buildings sit on the ground.
+* Terrain: self-hosted quantized-mesh tiles from the UBDC DTM (see Terrain above); `CONFIG.TERRAIN_URL`
+  in `index.html` points at them (set it to "" for a flat globe, together with tiles built without
+  `--no-flatten`).
 * Colours: building height classes use a single-hue ordinal ramp; LoD mode uses two categorical hues.
 * Zenodo download/view counts are fetched live from the Zenodo API, with a snapshot fallback.
