@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Glasgow 3D City Model</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive dashboard for the UBDC Glasgow 3D building model (LoD1 and LoD2) derived from 2020-21 airborne LiDAR.">
+<script>window.CESIUM_BASE_URL = "https://cdn.jsdelivr.net/npm/cesium@1.146.0/Build/Cesium/";</script>
+<script src="https://cdn.jsdelivr.net/npm/cesium@1.146.0/Build/Cesium/Cesium.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.146.0/Build/Cesium/Widgets/widgets.css">
+<style>
+  /* Light only: the 3D buildings sit on a light basemap, so the panel and charts share its scheme. */
+  :root {
+    color-scheme: light;
+    --surface: #fcfcfb; --plane: #f9f9f7; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,.10); --link: #2a78d6;
+    --h1: #86b6ef; --h2: #5598e7; --h3: #2a78d6; --h4: #1c5cab; --h5: #0d366b; --nodata: #c3c2b7;
+    --lod1: #eb6834; --lod2: #2a78d6; --select: #eda100;
+  }
+  html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--plane); }
+  body { font: 13.5px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); }
+  #panel { position: absolute; top: 12px; left: 12px; width: 372px; max-height: calc(100% - 24px); overflow: auto;
+           background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px 12px;
+           box-shadow: 0 6px 24px rgba(0,0,0,.14); box-sizing: border-box; }
+  h1 { font-size: 18px; margin: 0; }
+  h2 { font-size: 12.5px; margin: 16px 0 6px; color: var(--ink-2); font-weight: 600; letter-spacing: .01em; }
+  .sub { color: var(--ink-2); font-size: 12px; margin-top: 2px; }
+  .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .kpi { background: var(--plane); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+  .kpi b { display: block; font-size: 20px; font-weight: 600; line-height: 1.15; }
+  .kpi span { font-size: 11px; color: var(--ink-2); }
+  .kpi small { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12px; }
+  .controls label { color: var(--ink-2); display: inline-flex; align-items: center; gap: 4px; }
+  select, button { font: inherit; font-size: 12px; color: var(--ink); background: var(--surface); border: 1px solid var(--baseline);
+                   border-radius: 6px; padding: 3px 6px; }
+  button { cursor: pointer; } button:hover { background: var(--plane); }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; margin-top: 6px; }
+  .legend div { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
+  .legend i.line { height: 0; border-top: 2px solid var(--ink-2); border-radius: 0; }
+  .legend i.dash { height: 0; border-top: 2px dashed var(--ink-2); border-radius: 0; }
+  .chart { position: relative; margin-top: 4px; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .chart .bar:hover { opacity: .8; }
+  .tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; font-size: 11.5px; padding: 4px 7px;
+         border-radius: 5px; white-space: nowrap; transform: translate(-50%, -115%); display: none; }
+  .tip b { font-size: 13px; }
+  details summary { cursor: pointer; font-size: 12px; color: var(--ink-2); margin-top: 4px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 4px; }
+  th { text-align: left; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--grid); padding: 3px 4px; }
+  td { padding: 3px 4px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  #tiles tbody tr { cursor: pointer; } #tiles tbody tr:hover { background: var(--plane); }
+  #sel table td:first-child { color: var(--ink-2); width: 46%; }
+  .hint { color: var(--muted); font-size: 12px; }
+  #status { font-size: 11.5px; color: var(--ink-2); margin-top: 10px; min-height: 1.2em; }
+  .foot { font-size: 11.5px; color: var(--ink-2); margin-top: 10px; border-top: 1px solid var(--grid); padding-top: 8px; }
+  a { color: var(--link); }
+  .cesium-viewer-bottom { font-size: 10px; }
+  @media (max-width: 720px) {
+    #panel { top: auto; bottom: 0; left: 0; width: 100%; max-height: 55%; border-radius: 12px 12px 0 0; }
+  }
+</style>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+<div id="panel">
+  <h1>Glasgow 3D City Model</h1>
+  <div class="sub">Urban Big Data Centre · University of Glasgow · LiDAR 2020–21 → LoD1 &amp; LoD2 buildings</div>
+
+  <div class="kpis">
+    <div class="kpi"><b id="k-buildings">–</b><span>Buildings (LoD1, whole city)</span><small id="k-lod2">–</small></div>
+    <div class="kpi"><b id="k-area">–</b><span>Building footprint, km²</span><small id="k-tiles">–</small></div>
+    <div class="kpi"><b id="k-median">–</b><span>Median building height, m</span><small id="k-p90">–</small></div>
+    <div class="kpi"><b id="k-tallest">–</b><span>Tallest building (LoD2), m</span><small id="k-tallest-id">–</small></div>
+    <div class="kpi"><b id="k-downloads">–</b><span>Zenodo downloads</span><small id="k-views">–</small></div>
+    <div class="kpi"><b id="k-size">–</b><span>Streamed 3D Tiles, MB</span><small id="k-glbs">–</small></div>
+  </div>
+
+  <h2>View</h2>
+  <div class="controls">
+    <label>Colour <select id="c-colour"><option value="height">building height</option><option value="lod">level of detail</option><option value="plain">plain</option></select></label>
+    <label>Detail <select id="c-detail"><option value="auto">auto (LoD2 up close)</option><option value="lod1">LoD1 only</option></select></label>
+    <label><input type="checkbox" id="c-outlines" checked> tile outlines</label>
+    <label>Fly to <select id="c-tile"><option value="">whole city</option></select></label>
+  </div>
+  <div class="legend" id="legend"></div>
+
+  <h2>Building height distribution (mean height, m)</h2>
+  <div class="chart" id="chart"><div class="tip" id="tip"></div></div>
+  <details><summary>Show as table</summary><table id="hist-table"><thead><tr><th>Height, m</th><th class="n">Buildings</th><th class="n">Share</th></tr></thead><tbody></tbody></table></details>
+
+  <h2>Selected building</h2>
+  <div id="sel"><span class="hint">Click a building in the 3D view. Drag to pan, right-drag or ctrl-drag to tilt, scroll to zoom.</span></div>
+
+  <details id="tiles-details"><summary>Coverage by OS 5 km tile</summary>
+    <table id="tiles"><thead><tr><th>Tile</th><th class="n">Buildings</th><th>LoD2</th><th class="n">Median h</th><th class="n">km²</th><th class="n">Tallest</th></tr></thead><tbody></tbody></table>
+    <div class="hint">Click a row to fly there.</div>
+  </details>
+
+  <div id="status">Loading…</div>
+  <div class="foot">
+    Data: Li, Q., Zhao, Q., Quintas Zon, M., Jablon, P. E., Wang, M., Hu, C., Ou, Y. &amp; Sen, S. (2025). <em>Large-scale 3D building and tree datasets constructed from airborne LiDAR point clouds in Glasgow, UK</em> (v4). Zenodo. <a href="https://doi.org/10.5281/zenodo.15000747" target="_blank" rel="noopener">doi:10.5281/zenodo.15000747</a> · CC BY 4.0.<br>
+    Downloads: <a href="https://zenodo.org/records/15000747/files/lod2_3d_building_model.zip?download=1">LoD2 (926 MB)</a> · <a href="https://zenodo.org/records/15000747/files/lod1_3d_building_model.zip?download=1">LoD1 (365 MB)</a> · <a href="https://zenodo.org/records/15000747/files/building_footprints.zip?download=1">footprints (20 MB)</a><br>
+    Basemap © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors. Viewer: CesiumJS. Buildings are shown at a flattened ground level (no terrain).
+  </div>
+</div>
+
+<script>
+(async function () {
+  const DATA_VERSION = "2026-10-07.6";          // bump after regenerating tiles (busts caches)
+  const TILESET_URL = "tiles/tileset.json?v=" + DATA_VERSION;
+  const SUMMARY_URL = "tiles/summary.json?v=" + DATA_VERSION;
+  const ZENODO_API = "https://zenodo.org/api/records/15000747";
+  const ZENODO_FALLBACK = { downloads: 2312, views: 3818, asof: "2026-10-07" };
+
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  // Height classes: ordinal, one hue light->dark (documented ramp steps 250/350/450/550/700).
+  const CLASSES = [
+    { max: 6,  color: css("--h1"), label: "< 6" },
+    { max: 10, color: css("--h2"), label: "6 – 10" },
+    { max: 15, color: css("--h3"), label: "10 – 15" },
+    { max: 25, color: css("--h4"), label: "15 – 25" },
+    { max: Infinity, color: css("--h5"), label: "≥ 25" },
+  ];
+  const NODATA = css("--nodata"), LOD1 = css("--lod1"), LOD2 = css("--lod2"), SELECT = css("--select");
+  const classColor = h => (h === undefined || h === null || isNaN(h)) ? NODATA : CLASSES.find(c => h < c.max).color;
+  const $ = id => document.getElementById(id);
+  const fmt = n => n.toLocaleString("en-GB");
+  const fmt1 = n => n.toLocaleString("en-GB", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const trim = x => x.replace(/\.0$/, "");
+  const compact = n => n >= 1e6 ? trim((n / 1e6).toFixed(1)) + "M" : n >= 1e4 ? trim((n / 1e3).toFixed(1)) + "K" : fmt(n);
+  const el = (tag, attrs, parent) => { const e = document.createElementNS("http://www.w3.org/2000/svg", tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+
+  // ---------------------------------------------------------------- Cesium
+  const viewer = new Cesium.Viewer("cesiumContainer", {
+    baseLayer: new Cesium.ImageryLayer(new Cesium.OpenStreetMapImageryProvider({
+      url: "https://tile.openstreetmap.org/", maximumLevel: 19,
+      credit: new Cesium.Credit('© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', true),
+    })),
+    terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+    geocoder: false, baseLayerPicker: false, sceneModePicker: false, navigationHelpButton: false, homeButton: false,
+    animation: false, timeline: false, fullscreenButton: false, infoBox: false, selectionIndicator: false,
+    requestRenderMode: true, maximumRenderTimeChange: Infinity,
+  });
+  const scene = viewer.scene;
+  scene.globe.baseColor = Cesium.Color.fromCssColorString("#dfe6ee");
+  scene.skyAtmosphere.show = false; scene.fog.enabled = false; scene.globe.showGroundAtmosphere = false;
+  scene.highDynamicRange = false; scene.msaaSamples = 4; scene.globe.enableLighting = false;
+  const render = () => scene.requestRender();
+
+  // fixed light from the south-west, 45° up, expressed in ECEF at Glasgow
+  const enu = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(-4.25, 55.86));
+  const ax = i => Cesium.Matrix4.getColumn(enu, i, new Cesium.Cartesian4());
+  const [E, N, U] = [ax(0), ax(1), ax(2)];
+  const lightDir = Cesium.Cartesian3.normalize(new Cesium.Cartesian3(
+    -0.45 * E.x - 0.55 * N.x + 0.75 * U.x, -0.45 * E.y - 0.55 * N.y + 0.75 * U.y, -0.45 * E.z - 0.55 * N.z + 0.75 * U.z), new Cesium.Cartesian3());
+
+  const status = $("status");
+  let tileset;
+  try {
+    tileset = await Cesium.Cesium3DTileset.fromUrl(TILESET_URL, { maximumScreenSpaceError: 16 });
+  } catch (e) { status.textContent = "Failed to load tileset: " + e; console.error(e); return; }
+  scene.primitives.add(tileset);
+  tileset.customShader = new Cesium.CustomShader({            // flat shading from screen-space derivatives (GLBs carry no normals)
+    lightingModel: Cesium.LightingModel.UNLIT,
+    uniforms: { u_lightDir: { type: Cesium.UniformType.VEC3, value: lightDir } },
+    fragmentShaderText: `
+      void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material) {
+        vec3 p = fsInput.attributes.positionEC;
+        vec3 n = normalize(cross(dFdx(p), dFdy(p)));
+        vec3 l = normalize(czm_viewRotation * u_lightDir);
+        material.diffuse *= 0.42 + 0.58 * max(dot(n, l), 0.0);
+      }`,
+  });
+  tileset.loadProgress.addEventListener((pending, processing) => {
+    status.textContent = (pending + processing) > 0 ? `Loading tiles… ${pending + processing} in flight` : "";
+  });
+  tileset.tileFailed.addEventListener(e => { status.textContent = "Tile failed: " + e.url; console.error(e); });
+
+  // ---------------------------------------------------------------- colour modes & legend
+  const legend = $("legend");
+  function legendRow(swatchStyle, text) {
+    const d = document.createElement("div"); const i = document.createElement("i");
+    if (swatchStyle.startsWith("class:")) i.className = swatchStyle.slice(6); else i.style.background = swatchStyle;
+    d.appendChild(i); d.appendChild(document.createTextNode(text)); legend.appendChild(d);
+  }
+  function applyColour(mode) {
+    legend.textContent = "";
+    if (mode === "height") {
+      const conditions = [["${height} === undefined", `color('${NODATA}')`]];
+      for (const c of CLASSES) conditions.push([c.max === Infinity ? "true" : "${height} < " + c.max, `color('${c.color}')`]);
+      tileset.style = new Cesium.Cesium3DTileStyle({ color: { conditions } });
+      for (const c of CLASSES) legendRow(c.color, c.label + " m");
+      legendRow(NODATA, "no height");
+    } else if (mode === "lod") {
+      tileset.style = new Cesium.Cesium3DTileStyle({ color: { conditions: [["${lod} === 2", `color('${LOD2}')`], ["true", `color('${LOD1}')`]] } });
+      legendRow(LOD2, "LoD2 (roof shapes, city centre)"); legendRow(LOD1, "LoD1 (extruded footprints)");
+    } else {
+      tileset.style = new Cesium.Cesium3DTileStyle({ color: "color('#d9d7cf')" });
+    }
+    legendRow("class:line", "tile with LoD2"); legendRow("class:dash", "LoD1 only");
+    render();
+  }
+  $("c-colour").addEventListener("change", e => applyColour(e.target.value));
+  $("c-detail").addEventListener("change", e => { tileset.maximumScreenSpaceError = e.target.value === "lod1" ? 1e6 : 16; render(); });
+  applyColour("height");
+
+  // ---------------------------------------------------------------- picking
+  const sel = $("sel");
+  const LABELS = { uid: "Building ID", lod: "Level of detail", height: "Mean height (m)", height_max: "Max height (m)",
+                   height_min: "Min height (m)", height_pct90: "90th-percentile height (m)", ground_z: "Ground level, ODN (m)",
+                   footprint_area: "Footprint area (m²)", footprint_length: "Footprint perimeter (m)", n_triangles: "Triangles (source mesh)" };
+  let picked = null;
+  new Cesium.ScreenSpaceEventHandler(scene.canvas).setInputAction(m => {
+    const obj = scene.pick(m.position);
+    if (picked) { picked.color = Cesium.Color.WHITE; picked = null; }
+    sel.textContent = "";
+    if (obj instanceof Cesium.Cesium3DTileFeature) {
+      picked = obj; obj.color = Cesium.Color.fromCssColorString(SELECT);
+      const table = document.createElement("table");
+      for (const id of obj.getPropertyIds()) {
+        let v = obj.getProperty(id);
+        if (typeof v === "number") v = Number.isInteger(v) ? fmt(v) : v.toFixed(2);
+        if (v === undefined || v === null) v = "–";
+        const tr = table.insertRow(); tr.insertCell().textContent = LABELS[id] || id; tr.insertCell().textContent = v;
+      }
+      sel.appendChild(table);
+    } else {
+      const s = document.createElement("span"); s.className = "hint"; s.textContent = "No building selected."; sel.appendChild(s);
+    }
+    render();
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  // ---------------------------------------------------------------- summary: KPIs, histogram, tiles
+  let summary = null;
+  try { summary = await (await fetch(SUMMARY_URL)).json(); } catch (e) { console.warn("summary.json unavailable", e); }
+  const outlines = [];
+  if (summary) {
+    const t = summary.totals, h = summary.height;
+    $("k-buildings").textContent = fmt(t.buildings);
+    $("k-lod2").textContent = fmt(t.buildings_lod2) + " with LoD2 roof detail";
+    $("k-area").textContent = t.footprint_km2.toFixed(1);
+    $("k-tiles").textContent = `${summary.tiles} OS tiles · ${summary.tiles * 25} km² surveyed`;
+    $("k-median").textContent = fmt1(h.median_m);
+    $("k-p90").textContent = `90th percentile ${fmt1(h.p90_m)} m · mean ${fmt1(h.mean_m)} m`;
+    $("k-tallest").textContent = fmt1(summary.tallest.height_max_m);
+    $("k-tallest-id").textContent = summary.tallest.uid + " · click to fly there";
+    $("k-tallest").parentElement.style.cursor = "pointer";
+    $("k-tallest").parentElement.addEventListener("click", () => flyTo(summary.tallest.lon, summary.tallest.lat, 500, 0.006));
+    $("k-size").textContent = fmt1(t.mb_total);
+    $("k-glbs").textContent = `${fmt(t.glbs)} tiles · ${compact(t.triangles_lod1 + t.triangles_lod2)} triangles`;
+
+    renderHistogram(h.bins, h.hist, h.n);
+
+    // tiles table + outlines + fly-to options
+    const tbody = $("tiles").tBodies[0], select = $("c-tile");
+    for (const r of summary.per_tile) {
+      const tr = tbody.insertRow();
+      [r.tile, fmt(r.buildings), r.lod2 ? "✓" : "–", r.median_height_m == null ? "–" : fmt1(r.median_height_m), r.footprint_km2.toFixed(2), fmt1(r.tallest_m)]
+        .forEach((v, i) => { const td = tr.insertCell(); td.textContent = v; if ([1, 3, 4, 5].includes(i)) td.className = "n"; });
+      tr.addEventListener("click", () => flyToTile(r));
+      const o = document.createElement("option"); o.value = r.tile; o.textContent = `${r.tile}${r.lod2 ? " (LoD2)" : ""}`; select.appendChild(o);
+      const [w, s, e, n] = r.region_deg;
+      outlines.push(viewer.entities.add({
+        polyline: { positions: Cesium.Cartesian3.fromDegreesArray([w, s, e, s, e, n, w, n, w, s]), width: 2,
+                    material: r.lod2 ? Cesium.Color.fromCssColorString(css("--ink-2"))
+                                     : new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString(css("--ink-2")), dashLength: 12 }) },
+      }));
+      outlines.push(viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(r.centre_lon, n - 0.004),
+        label: { text: r.tile, font: "600 12px system-ui, sans-serif", fillColor: Cesium.Color.fromCssColorString(css("--ink")),
+                 outlineColor: Cesium.Color.WHITE, outlineWidth: 4, style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                 disableDepthTestDistance: Number.POSITIVE_INFINITY, scaleByDistance: new Cesium.NearFarScalar(5000, 1.0, 60000, 0.5),
+                 translucencyByDistance: new Cesium.NearFarScalar(3000, 1.0, 1500, 0.0) },
+      }));
+    }
+    select.addEventListener("change", e => {
+      const r = summary.per_tile.find(x => x.tile === e.target.value);
+      if (r) flyToTile(r); else flyHome();
+    });
+    $("c-outlines").addEventListener("change", e => { outlines.forEach(o => o.show = e.target.checked); render(); });
+  }
+
+  // Zenodo stats (live if the API allows cross-origin requests, else the snapshot)
+  (async () => {
+    let s = ZENODO_FALLBACK, live = false;
+    try { const d = await (await fetch(ZENODO_API)).json(); if (d && d.stats) { s = d.stats; live = true; } } catch (e) {}
+    $("k-downloads").textContent = fmt(s.downloads);
+    $("k-views").textContent = `${fmt(s.views)} views · ${live ? "live from Zenodo" : "as of " + ZENODO_FALLBACK.asof}`;
+  })();
+
+  // ---------------------------------------------------------------- camera helpers
+  function flyTo(lon, lat, height, southOffset) {
+    viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(lon, lat - southOffset, height),
+                          orientation: { heading: 0, pitch: Cesium.Math.toRadians(-38), roll: 0 }, duration: 1.8 });
+  }
+  function flyToTile(r) { flyTo(r.centre_lon, r.centre_lat, 4200, 0.045); }
+  const HOME = summary && summary.focus ? summary.focus : { lon: -4.25, lat: 55.86 };
+  function flyHome() { flyTo(HOME.lon, HOME.lat, 13000, 0.15); }
+  if (summary) {
+    viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(HOME.lon, HOME.lat - 0.15, 13000),
+                            orientation: { heading: 0, pitch: Cesium.Math.toRadians(-38), roll: 0 } });
+  } else {
+    await viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-38), 20000));
+  }
+  render();
+  window.viewer = viewer; window.tileset = tileset;
+
+  // ---------------------------------------------------------------- histogram (SVG, hand-rolled)
+  function renderHistogram(bins, counts, total) {
+    const W = 340, H = 170, m = { t: 20, r: 6, b: 30, l: 40 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const max = Math.max(...counts);
+    const step = niceStep(max / 3), yMax = Math.ceil(max / step) * step;
+    const band = iw / counts.length, barW = Math.min(24, band - 2);
+    const chart = $("chart"), tip = $("tip");
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Histogram of building heights" }, chart);
+    for (let v = 0; v <= yMax; v += step) {                       // hairline gridlines + ticks
+      const y = m.t + ih - (v / yMax) * ih;
+      el("line", { x1: m.l, x2: W - m.r, y1: y, y2: y, stroke: v === 0 ? css("--baseline") : css("--grid"), "stroke-width": 1 }, svg);
+      el("text", { x: m.l - 6, y: y + 3.5, "text-anchor": "end", "font-size": 9.5, fill: css("--muted"), "font-variant-numeric": "tabular-nums" }, svg).textContent = compact(v);
+    }
+    for (let i = 0; i < counts.length; i++) {                      // x labels at bin edges (metres); last bin is open-ended
+      el("text", { x: m.l + i * band, y: H - m.b + 13, "text-anchor": "middle", "font-size": 9.5, fill: css("--muted") }, svg).textContent = String(bins[i]) + (i === counts.length - 1 ? "+" : "");
+    }
+    const imax = counts.indexOf(max);
+    counts.forEach((c, i) => {
+      const x = m.l + i * band + (band - barW) / 2, hgt = (c / yMax) * ih, y = m.t + ih - hgt, r = Math.min(4, hgt);
+      const lo = bins[i], hi = i + 1 < bins.length ? bins[i + 1] : null;
+      const d = `M${x},${y + hgt} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + barW - r},${y} Q${x + barW},${y} ${x + barW},${y + r} L${x + barW},${y + hgt} Z`;
+      const bar = el("path", { d, fill: classColor(lo), class: "bar" }, svg);
+      if (i === imax) el("text", { x: x + barW / 2, y: y - 5, "text-anchor": "middle", "font-size": 10, fill: css("--ink-2") }, svg).textContent = fmt(c);
+      const hit = el("rect", { x: m.l + i * band, y: m.t, width: band, height: ih, fill: "transparent" }, svg);
+      const label = hi === null ? `${lo} m and above` : `${lo} – ${hi} m`;
+      const show = () => { tip.textContent = ""; const b = document.createElement("b"); b.textContent = fmt(c); tip.appendChild(b);
+                           tip.appendChild(document.createTextNode(` buildings · ${label} · ${(100 * c / total).toFixed(1)}%`));
+                           const box = chart.getBoundingClientRect(); tip.style.left = ((x + barW / 2) / W * box.width) + "px"; tip.style.top = (y / H * box.height) + "px"; tip.style.display = "block"; bar.style.opacity = .8; };
+      const hide = () => { tip.style.display = "none"; bar.style.opacity = 1; };
+      hit.addEventListener("pointerenter", show); hit.addEventListener("pointerleave", hide);
+      hit.setAttribute("tabindex", "0"); hit.addEventListener("focus", show); hit.addEventListener("blur", hide);
+      const tr = $("hist-table").tBodies[0].insertRow();
+      tr.insertCell().textContent = label; const c1 = tr.insertCell(); c1.textContent = fmt(c); c1.className = "n";
+      const c2 = tr.insertCell(); c2.textContent = (100 * c / total).toFixed(1) + "%"; c2.className = "n";
+    });
+  }
+  function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
+})();
+</script>
+</body>
+</html>

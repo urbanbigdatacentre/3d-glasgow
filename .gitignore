@@ -1,0 +1,6 @@
+# platform binaries and the cloned meshoptimizer source: rebuild with tools/build_meshopt.sh + pip (see README)
+tools/vendor/
+tiles_new/
+__pycache__/
+*.pyc
+.DS_Store
