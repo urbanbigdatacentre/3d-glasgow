@@ -38,8 +38,11 @@
   .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; margin-top: 6px; }
   .legend div { display: inline-flex; align-items: center; gap: 6px; }
   .legend i { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
-  .legend i.line { height: 0; border-top: 2px solid var(--ink-2); border-radius: 0; }
-  .legend i.dash { height: 0; border-top: 2px dashed var(--ink-2); border-radius: 0; }
+  #nav { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 4px; }
+  #nav button { width: 34px; height: 34px; padding: 0; font-size: 17px; line-height: 1; border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,.12); display: grid; place-items: center; }
+  #nav button.sm { font-size: 12px; font-weight: 600; }
+  #nav .gap { height: 6px; }
   .chart { position: relative; margin-top: 4px; }
   .chart svg { width: 100%; height: auto; display: block; }
   .chart .bar:hover { opacity: .8; }
@@ -59,12 +62,29 @@
   a { color: var(--link); }
   .cesium-viewer-bottom { font-size: 10px; }
   @media (max-width: 720px) {
-    #panel { top: auto; bottom: 0; left: 0; width: 100%; max-height: 55%; border-radius: 12px 12px 0 0; }
+    /* split screen instead of an overlay, so the map's centre (where the camera aims) stays visible */
+    #cesiumContainer { height: 48%; }
+    #panel { top: 48%; bottom: 0; left: 0; width: 100%; height: 52%; max-height: none; border-radius: 12px 12px 0 0; }
+    #nav { flex-direction: row; flex-wrap: wrap; width: 148px; justify-content: flex-end; }
+    #nav .gap { display: none; }
   }
 </style>
 </head>
 <body>
 <div id="cesiumContainer"></div>
+<div id="nav" aria-label="Map navigation">
+  <button data-act="zoomin" title="Zoom in">+</button>
+  <button data-act="zoomout" title="Zoom out">−</button>
+  <div class="gap"></div>
+  <button data-act="tiltdown" title="Tilt: look more from above">⬆</button>
+  <button data-act="tiltup" title="Tilt: more oblique view">⬇</button>
+  <div class="gap"></div>
+  <button data-act="rotl" title="Rotate left">↺</button>
+  <button data-act="rotr" title="Rotate right">↻</button>
+  <div class="gap"></div>
+  <button data-act="north" class="sm" title="Reset to north-up">N</button>
+  <button data-act="home" title="Whole city">⌂</button>
+</div>
 <div id="panel">
   <h1>Glasgow 3D City Model</h1>
   <div class="sub">Urban Big Data Centre · University of Glasgow · LiDAR 2020–21 → LoD1 &amp; LoD2 buildings</div>
@@ -82,7 +102,6 @@
   <div class="controls">
     <label>Colour <select id="c-colour"><option value="height">building height</option><option value="lod">level of detail</option><option value="plain">plain</option></select></label>
     <label>Detail <select id="c-detail"><option value="auto">auto (LoD2 up close)</option><option value="lod1">LoD1 only</option></select></label>
-    <label><input type="checkbox" id="c-outlines" checked> tile outlines</label>
     <label>Fly to <select id="c-tile"><option value="">whole city</option></select></label>
   </div>
   <div class="legend" id="legend"></div>
@@ -92,7 +111,7 @@
   <details><summary>Show as table</summary><table id="hist-table"><thead><tr><th>Height, m</th><th class="n">Buildings</th><th class="n">Share</th></tr></thead><tbody></tbody></table></details>
 
   <h2>Selected building</h2>
-  <div id="sel"><span class="hint">Click a building in the 3D view. Drag to pan, right-drag or ctrl-drag to tilt, scroll to zoom.</span></div>
+  <div id="sel"><span class="hint">Click a building in the 3D view. Drag to pan, scroll or pinch to zoom, right-drag or ctrl-drag to tilt, or use the buttons at the top right.</span></div>
 
   <details id="tiles-details"><summary>Coverage by OS 5 km tile</summary>
     <table id="tiles"><thead><tr><th>Tile</th><th class="n">Buildings</th><th>LoD2</th><th class="n">Median h</th><th class="n">km²</th><th class="n">Tallest</th></tr></thead><tbody></tbody></table>
@@ -150,6 +169,13 @@
   scene.skyAtmosphere.show = false; scene.fog.enabled = false; scene.globe.showGroundAtmosphere = false;
   scene.highDynamicRange = false; scene.msaaSamples = 4; scene.globe.enableLighting = false;
   const render = () => scene.requestRender();
+  const ssc = scene.screenSpaceCameraController;             // Google-Earth-like mouse mapping
+  ssc.tiltEventTypes = [Cesium.CameraEventType.RIGHT_DRAG, Cesium.CameraEventType.MIDDLE_DRAG, Cesium.CameraEventType.PINCH,
+                        { eventType: Cesium.CameraEventType.LEFT_DRAG, modifier: Cesium.KeyboardEventModifier.CTRL },
+                        { eventType: Cesium.CameraEventType.LEFT_DRAG, modifier: Cesium.KeyboardEventModifier.SHIFT }];
+  ssc.zoomEventTypes = [Cesium.CameraEventType.WHEEL, Cesium.CameraEventType.PINCH];
+  ssc.minimumZoomDistance = 40;
+  ssc.maximumZoomDistance = 300000;
 
   // fixed light from the south-west, 45° up, expressed in ECEF at Glasgow
   const enu = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(-4.25, 55.86));
@@ -201,13 +227,12 @@
     } else {
       tileset.style = new Cesium.Cesium3DTileStyle({ color: "color('#d9d7cf')" });
     }
-    legendRow("class:line", "tile with LoD2"); legendRow("class:dash", "LoD1 only");
     render();
   }
   $("c-colour").addEventListener("change", e => applyColour(e.target.value));
-  // "LoD1 only": a screen-space-error threshold the LoD1 tiles (geometricError 50 m) never exceed,
-  // while the tile roots (geometricError 1e6) always do, so the coarse level stays on screen.
-  $("c-detail").addEventListener("change", e => { tileset.maximumScreenSpaceError = e.target.value === "lod1" ? 1e5 : 16; render(); });
+  // "LoD1 only": a screen-space-error threshold the LoD1 tiles (geometricError 50 m) only exceed within
+  // ~40 m, while the tile roots (geometricError 1e6) exceed it out to ~800 km, so the coarse level stays on screen.
+  $("c-detail").addEventListener("change", e => { tileset.maximumScreenSpaceError = e.target.value === "lod1" ? 1000 : 16; render(); });
   applyColour("height");
 
   // ---------------------------------------------------------------- picking
@@ -239,7 +264,6 @@
   // ---------------------------------------------------------------- summary: KPIs, histogram, tiles
   let summary = null;
   try { summary = await (await fetch(SUMMARY_URL)).json(); } catch (e) { console.warn("summary.json unavailable", e); }
-  const outlines = [];
   if (summary) {
     const t = summary.totals, h = summary.height;
     $("k-buildings").textContent = fmt(t.buildings);
@@ -257,33 +281,25 @@
 
     renderHistogram(h.bins, h.hist, h.n);
 
-    // tiles table + outlines + fly-to options
+    // tiles table + fly-to options: LoD2 tiles first, then the LoD1-only tiles alphabetically
     const tbody = $("tiles").tBodies[0], select = $("c-tile");
-    for (const r of summary.per_tile) {
-      const tr = tbody.insertRow();
-      [r.tile, fmt(r.buildings), r.lod2 ? "✓" : "–", r.median_height_m == null ? "–" : fmt1(r.median_height_m), r.footprint_km2.toFixed(2), fmt1(r.tallest_m)]
-        .forEach((v, i) => { const td = tr.insertCell(); td.textContent = v; if ([1, 3, 4, 5].includes(i)) td.className = "n"; });
-      tr.addEventListener("click", () => flyToTile(r));
-      const o = document.createElement("option"); o.value = r.tile; o.textContent = `${r.tile}${r.lod2 ? " (LoD2)" : ""}`; select.appendChild(o);
-      const [w, s, e, n] = r.region_deg;
-      outlines.push(viewer.entities.add({
-        polyline: { positions: Cesium.Cartesian3.fromDegreesArray([w, s, e, s, e, n, w, n, w, s]), width: 2,
-                    material: r.lod2 ? Cesium.Color.fromCssColorString(css("--ink-2"))
-                                     : new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString(css("--ink-2")), dashLength: 12 }) },
-      }));
-      outlines.push(viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(r.centre_lon, n - 0.004),
-        label: { text: r.tile, font: "600 12px system-ui, sans-serif", fillColor: Cesium.Color.fromCssColorString(css("--ink")),
-                 outlineColor: Cesium.Color.WHITE, outlineWidth: 4, style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                 disableDepthTestDistance: Number.POSITIVE_INFINITY, scaleByDistance: new Cesium.NearFarScalar(5000, 1.0, 60000, 0.5),
-                 translucencyByDistance: new Cesium.NearFarScalar(3000, 1.0, 1500, 0.0) },
-      }));
+    const byName = (a, b) => a.tile.localeCompare(b.tile);
+    const lod2Tiles = summary.per_tile.filter(r => r.lod2).sort(byName);
+    const lod1Tiles = summary.per_tile.filter(r => !r.lod2).sort(byName);
+    for (const [label, rows] of [["LoD2 (city centre)", lod2Tiles], ["LoD1 only", lod1Tiles]]) {
+      const group = document.createElement("optgroup"); group.label = label; select.appendChild(group);
+      for (const r of rows) {
+        const o = document.createElement("option"); o.value = r.tile; o.textContent = r.tile; group.appendChild(o);
+        const tr = tbody.insertRow();
+        [r.tile, fmt(r.buildings), r.lod2 ? "✓" : "–", r.median_height_m == null ? "–" : fmt1(r.median_height_m), r.footprint_km2.toFixed(2), fmt1(r.tallest_m)]
+          .forEach((v, i) => { const td = tr.insertCell(); td.textContent = v; if ([1, 3, 4, 5].includes(i)) td.className = "n"; });
+        tr.addEventListener("click", () => flyToTile(r));
+      }
     }
     select.addEventListener("change", e => {
       const r = summary.per_tile.find(x => x.tile === e.target.value);
       if (r) flyToTile(r); else flyHome();
     });
-    $("c-outlines").addEventListener("change", e => { outlines.forEach(o => o.show = e.target.checked); render(); });
   }
 
   // Zenodo stats (live if the API allows cross-origin requests, else the snapshot)
@@ -310,6 +326,29 @@
   }
   render();
   window.viewer = viewer; window.tileset = tileset;
+
+  // on-screen navigation: orbit the point under the screen centre
+  function orbit(dHeading, dPitch, zoomFactor) {
+    const cam = viewer.camera, canvas = scene.canvas;
+    let target = cam.pickEllipsoid(new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2), scene.globe.ellipsoid);
+    if (!target) {
+      const c = cam.positionCartographic;
+      target = Cesium.Cartesian3.fromRadians(c.longitude, c.latitude, 0);
+    }
+    const range = Math.max(50, Cesium.Cartesian3.distance(cam.positionWC, target) * zoomFactor);
+    const heading = dHeading === null ? 0 : cam.heading + dHeading;
+    const pitch = Cesium.Math.clamp(cam.pitch + dPitch, Cesium.Math.toRadians(-89), Cesium.Math.toRadians(-8));
+    cam.lookAt(target, new Cesium.HeadingPitchRange(heading, pitch, range));
+    cam.lookAtTransform(Cesium.Matrix4.IDENTITY);
+    render();
+  }
+  const NAV = {
+    zoomin: () => orbit(0, 0, 0.6), zoomout: () => orbit(0, 0, 1 / 0.6),
+    tiltdown: () => orbit(0, Cesium.Math.toRadians(-12), 1), tiltup: () => orbit(0, Cesium.Math.toRadians(12), 1),
+    rotl: () => orbit(Cesium.Math.toRadians(-20), 0, 1), rotr: () => orbit(Cesium.Math.toRadians(20), 0, 1),
+    north: () => orbit(null, 0, 1), home: () => flyHome(),
+  };
+  $("nav").addEventListener("click", e => { const b = e.target.closest("button"); if (b && NAV[b.dataset.act]) NAV[b.dataset.act](); });
 
   // ---------------------------------------------------------------- histogram (SVG, hand-rolled)
   function renderHistogram(bins, counts, total) {
