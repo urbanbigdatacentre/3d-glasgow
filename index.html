@@ -110,10 +110,15 @@
   <h2>View</h2>
   <div class="controls">
     <label>Colour <select id="c-colour"><option value="height">building height</option><option value="lod">level of detail</option><option value="plain">plain</option></select></label>
-    <label>Detail <select id="c-detail"><option value="auto">auto (LoD2 up close)</option><option value="lod1">LoD1 only</option></select></label>
+    <label>Detail <select id="c-detail"><option value="auto">auto (LoD2 roofs when close)</option><option value="lod1">LoD1 only (fast)</option><option value="lod2">LoD2 everywhere (city centre)</option></select></label>
     <label>Fly to <select id="c-tile"><option value="">whole city</option></select></label>
     <label>Basemap <select id="c-basemap"></select></label>
+    <span id="terrain-controls" style="display:none">
+      <label><input type="checkbox" id="c-shade" checked> relief shading</label>
+      <label>Exaggeration <select id="c-exag"><option value="1">1×</option><option value="2">2×</option><option value="3">3×</option></select></label>
+    </span>
   </div>
+  <div class="hint" id="inview"></div>
   <div class="legend" id="legend"></div>
 
   <h2>Building height distribution (mean height, m)</h2>
@@ -139,7 +144,7 @@
 
 <script>
 (async function () {
-  const DATA_VERSION = "2026-10-08.1";          // bump after regenerating tiles (busts caches)
+  const DATA_VERSION = "2026-10-08.2";          // bump after regenerating tiles (busts caches)
   const TILESET_URL = "tiles/tileset.json?v=" + DATA_VERSION;
   const SUMMARY_URL = "tiles/summary.json?v=" + DATA_VERSION;
   const ZENODO_API = "https://zenodo.org/api/records/15000747";
@@ -148,6 +153,7 @@
   //  - CESIUM_ION_TOKEN: free Cesium ion account (Bing aerial imagery; also needed for Cesium World Terrain)
   const CONFIG = { OS_MAPS_API_KEY: "", CESIUM_ION_TOKEN: "",
                    TERRAIN_URL: "tiles/terrain" };          // self-hosted quantized-mesh terrain ("" = flat globe)
+  const GEOID_M = 54.1;   // OSGM15 geoid height over Glasgow: ODN 0 m sits at this WGS84 ellipsoidal height
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
                   set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
   const ZENODO_FALLBACK = { downloads: 2312, views: 3818, asof: "2026-10-07" };
@@ -185,11 +191,15 @@
       viewer.terrainProvider = await Cesium.CesiumTerrainProvider.fromUrl(CONFIG.TERRAIN_URL + "?v=" + DATA_VERSION, { requestVertexNormals: false });
       // depthTestAgainstTerrain stays off: coarse terrain levels carry metre-scale error and would swallow
       // low buildings when zoomed out; without it buildings always draw on top of the ground.
+      $("terrain-controls").style.display = "inline";
+      scene.verticalExaggerationRelativeHeight = GEOID_M;    // exaggerate relative to sea level, not the ellipsoid
+      $("c-exag").addEventListener("change", e => { scene.verticalExaggeration = Number(e.target.value); render(); });
+      $("c-shade").addEventListener("change", e => { scene.globe.enableLighting = e.target.checked; render(); });
     } catch (e) { console.warn("terrain unavailable, using a flat globe", e); }
   }
   scene.globe.baseColor = Cesium.Color.fromCssColorString("#dfe6ee");
   scene.skyAtmosphere.show = false; scene.fog.enabled = false; scene.globe.showGroundAtmosphere = false;
-  scene.highDynamicRange = false; scene.msaaSamples = 4; scene.globe.enableLighting = false;
+  scene.highDynamicRange = false; scene.msaaSamples = 4;
   const render = () => scene.requestRender();
   const ssc = scene.screenSpaceCameraController;             // Google-Earth-like mouse mapping
   ssc.tiltEventTypes = [Cesium.CameraEventType.RIGHT_DRAG, Cesium.CameraEventType.MIDDLE_DRAG, Cesium.CameraEventType.PINCH,
@@ -245,6 +255,10 @@
   const [E, N, U] = [ax(0), ax(1), ax(2)];
   const lightDir = Cesium.Cartesian3.normalize(new Cesium.Cartesian3(
     -0.45 * E.x - 0.55 * N.x + 0.75 * U.x, -0.45 * E.y - 0.55 * N.y + 0.75 * U.y, -0.45 * E.z - 0.55 * N.z + 0.75 * U.z), new Cesium.Cartesian3());
+  // the same fixed light shades the terrain (relief shading) and the buildings (custom shader)
+  scene.light = new Cesium.DirectionalLight({ direction: Cesium.Cartesian3.negate(lightDir, new Cesium.Cartesian3()), intensity: 2.2 });
+  scene.globe.enableLighting = true;
+  scene.globe.dynamicAtmosphereLighting = false;
 
   const status = $("status");
   let tileset;
@@ -300,7 +314,18 @@
   $("c-colour").addEventListener("change", e => applyColour(e.target.value));
   // "LoD1 only": a screen-space-error threshold the LoD1 tiles (geometricError 50 m) only exceed within
   // ~40 m, while the tile roots (geometricError 1e6) exceed it out to ~800 km, so the coarse level stays on screen.
-  $("c-detail").addEventListener("change", e => { tileset.maximumScreenSpaceError = e.target.value === "lod1" ? 1000 : 16; render(); });
+  // "LoD2 everywhere": threshold 1 makes every LoD1 tile refine, so all 1,011 LoD2 cells load (~20 MB).
+  const DETAIL_SSE = { auto: 16, lod1: 1000, lod2: 1 };
+  $("c-detail").addEventListener("change", e => { tileset.maximumScreenSpaceError = DETAIL_SSE[e.target.value] || 16; render(); });
+
+  // what is on screen right now (public tile events; tiles carry extras.lod from the build)
+  let inView = { 1: 0, 2: 0 }, inViewShown = "";
+  scene.preUpdate.addEventListener(() => { inView = { 1: 0, 2: 0 }; });
+  tileset.tileVisible.addEventListener(t => { if (t.extras && t.extras.lod) inView[t.extras.lod]++; });
+  scene.postRender.addEventListener(() => {
+    const txt = `In view: ${fmt(inView[1])} LoD1 tiles · ${fmt(inView[2])} LoD2 tiles` + (inView[2] === 0 && inView[1] > 0 ? " (LoD2 appears within ~2.5 km, or choose “LoD2 everywhere”)" : "");
+    if (txt !== inViewShown) { inViewShown = txt; $("inview").textContent = txt; }
+  });
   applyColour("height");
 
   // ---------------------------------------------------------------- picking
@@ -324,7 +349,16 @@
       }
       sel.appendChild(table);
     } else {
-      const s = document.createElement("span"); s.className = "hint"; s.textContent = "No building selected."; sel.appendChild(s);
+      const s = document.createElement("span"); s.className = "hint";
+      const ground = scene.globe.pick(viewer.camera.getPickRay(m.position), scene);
+      if (ground && viewer.terrainProvider.availability !== undefined) {
+        const hEx = Cesium.Cartographic.fromCartesian(ground).height;
+        const h = GEOID_M + (hEx - GEOID_M) / (scene.verticalExaggeration || 1);   // undo exaggeration
+        s.textContent = `No building here. Ground level ≈ ${(h - GEOID_M).toFixed(1)} m above sea level (ODN), from the UBDC DTM.`;
+      } else {
+        s.textContent = "No building selected.";
+      }
+      sel.appendChild(s);
     }
     render();
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);

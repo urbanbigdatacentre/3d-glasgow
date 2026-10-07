@@ -112,4 +112,10 @@ then open http://localhost:8765/.
   in `index.html` points at them (set it to "" for a flat globe, together with tiles built without
   `--no-flatten`).
 * Colours: building height classes use a single-hue ordinal ramp; LoD mode uses two categorical hues.
+* Detail menu: *auto* swaps LoD2 roofs in within ~2.5 km, *LoD1 only* never does (fast), *LoD2 everywhere*
+  loads all 1,011 LoD2 cells at once (~20 MB). A line under the controls shows how many LoD1/LoD2 tiles
+  are on screen.
+* Terrain controls: relief shading (the globe is lit by the same fixed light as the buildings) and a
+  1×/2×/3× vertical exaggeration relative to sea level, which lifts buildings consistently with the ground.
+  Clicking open ground reports its height above sea level (ODN) from the DTM.
 * Zenodo download/view counts are fetched live from the Zenodo API, with a snapshot fallback.
