@@ -5,7 +5,8 @@ Interactive web dashboard for the UBDC Glasgow 3D building model
 119,765 LoD1 buildings across 23 OS 5 km tiles, 38,165 of them with LoD2 roof detail in the city centre.
 
 Static site, no backend: a CesiumJS viewer streaming 3D Tiles, plus KPIs, a height histogram and a
-per-tile coverage table. Built for GitHub Pages.
+per-tile coverage table. Served by GitHub Pages at **https://urbanbigdatacentre.github.io/3d-glasgow/**
+(every push to `main` redeploys; the `tiles/` folder is committed, so no build step runs on GitHub).
 
 ## Layout
 
