@@ -38,6 +38,11 @@
   .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; margin-top: 6px; }
   .legend div { display: inline-flex; align-items: center; gap: 6px; }
   .legend i { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
+  #panel-close { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 6px; font-size: 15px; padding: 0; }
+  #panel-open { position: absolute; top: 12px; left: 12px; display: none; height: 34px; padding: 0 12px; border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,.12); align-items: center; gap: 6px; font-weight: 600; }
+  body.collapsed #panel { display: none; }
+  body.collapsed #panel-open { display: inline-flex; }
   #nav { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 4px; }
   #nav button { width: 34px; height: 34px; padding: 0; font-size: 17px; line-height: 1; border-radius: 8px;
                 box-shadow: 0 2px 8px rgba(0,0,0,.12); display: grid; place-items: center; }
@@ -65,6 +70,8 @@
     /* split screen instead of an overlay, so the map's centre (where the camera aims) stays visible */
     #cesiumContainer { height: 48%; }
     #panel { top: 48%; bottom: 0; left: 0; width: 100%; height: 52%; max-height: none; border-radius: 12px 12px 0 0; }
+    body.collapsed #cesiumContainer { height: 100%; }
+    #panel-open { top: auto; bottom: 12px; }
     #nav { flex-direction: row; flex-wrap: wrap; width: 148px; justify-content: flex-end; }
     #nav .gap { display: none; }
   }
@@ -85,7 +92,9 @@
   <button data-act="north" class="sm" title="Reset to north-up">N</button>
   <button data-act="home" title="Whole city">⌂</button>
 </div>
+<button id="panel-open" title="Show the dashboard panel">☰ Dashboard</button>
 <div id="panel">
+  <button id="panel-close" title="Hide the panel">×</button>
   <h1>Glasgow 3D City Model</h1>
   <div class="sub">Urban Big Data Centre · University of Glasgow · LiDAR 2020–21 → LoD1 &amp; LoD2 buildings</div>
 
@@ -103,6 +112,7 @@
     <label>Colour <select id="c-colour"><option value="height">building height</option><option value="lod">level of detail</option><option value="plain">plain</option></select></label>
     <label>Detail <select id="c-detail"><option value="auto">auto (LoD2 up close)</option><option value="lod1">LoD1 only</option></select></label>
     <label>Fly to <select id="c-tile"><option value="">whole city</option></select></label>
+    <label>Basemap <select id="c-basemap"></select></label>
   </div>
   <div class="legend" id="legend"></div>
 
@@ -133,6 +143,12 @@
   const TILESET_URL = "tiles/tileset.json?v=" + DATA_VERSION;
   const SUMMARY_URL = "tiles/summary.json?v=" + DATA_VERSION;
   const ZENODO_API = "https://zenodo.org/api/records/15000747";
+  // Optional keys. Fill in and push: extra basemaps appear in the Basemap menu automatically.
+  //  - OS_MAPS_API_KEY: free "OS OpenData" plan at https://osdatahub.os.uk (Light / Road / Outdoor styles)
+  //  - CESIUM_ION_TOKEN: free Cesium ion account (Bing aerial imagery; also needed for Cesium World Terrain)
+  const CONFIG = { OS_MAPS_API_KEY: "", CESIUM_ION_TOKEN: "" };
+  const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+                  set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
   const ZENODO_FALLBACK = { downloads: 2312, views: 3818, asof: "2026-10-07" };
 
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -154,11 +170,9 @@
   const el = (tag, attrs, parent) => { const e = document.createElementNS("http://www.w3.org/2000/svg", tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
 
   // ---------------------------------------------------------------- Cesium
+  if (CONFIG.CESIUM_ION_TOKEN) Cesium.Ion.defaultAccessToken = CONFIG.CESIUM_ION_TOKEN;
   const viewer = new Cesium.Viewer("cesiumContainer", {
-    baseLayer: new Cesium.ImageryLayer(new Cesium.OpenStreetMapImageryProvider({
-      url: "https://tile.openstreetmap.org/", maximumLevel: 19,
-      credit: new Cesium.Credit('© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', true),
-    })),
+    baseLayer: false,                                        // set by the basemap menu below
     terrainProvider: new Cesium.EllipsoidTerrainProvider(),
     geocoder: false, baseLayerPicker: false, sceneModePicker: false, navigationHelpButton: false, homeButton: false,
     animation: false, timeline: false, fullscreenButton: false, infoBox: false, selectionIndicator: false,
@@ -176,6 +190,46 @@
   ssc.zoomEventTypes = [Cesium.CameraEventType.WHEEL, Cesium.CameraEventType.PINCH];
   ssc.minimumZoomDistance = 40;
   ssc.maximumZoomDistance = 300000;
+
+  // ---------------------------------------------------------------- basemaps
+  const osm = () => new Cesium.OpenStreetMapImageryProvider({
+    url: "https://tile.openstreetmap.org/", maximumLevel: 19,
+    credit: new Cesium.Credit('© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', true) });
+  const BASEMAPS = {
+    osm: { label: "OpenStreetMap", make: osm },
+    osmgrey: { label: "OpenStreetMap, greyscale", make: osm, tune: { saturation: 0.0, brightness: 1.05, contrast: 0.95 } },
+    none: { label: "None", make: () => null },
+  };
+  if (CONFIG.OS_MAPS_API_KEY) {
+    const osCredit = new Cesium.Credit("Contains OS data © Crown copyright and database rights " + new Date().getFullYear(), true);
+    for (const [id, label] of [["Light_3857", "OS Light"], ["Road_3857", "OS Road"], ["Outdoor_3857", "OS Outdoor"]]) {
+      BASEMAPS["os_" + id] = { label, make: () => new Cesium.UrlTemplateImageryProvider({
+        url: `https://api.os.uk/maps/raster/v1/zxy/${id}/{z}/{x}/{y}.png?key=${CONFIG.OS_MAPS_API_KEY}`, maximumLevel: 20, credit: osCredit }) };
+    }
+  }
+  if (CONFIG.CESIUM_ION_TOKEN) {
+    BASEMAPS.aerial = { label: "Aerial imagery (Bing)", make: () => Cesium.IonImageryProvider.fromAssetId(2) };
+    BASEMAPS.aerialLabels = { label: "Aerial imagery with labels (Bing)", make: () => Cesium.IonImageryProvider.fromAssetId(3) };
+  }
+  const basemapSelect = $("c-basemap");
+  for (const [id, b] of Object.entries(BASEMAPS)) { const o = document.createElement("option"); o.value = id; o.textContent = b.label; basemapSelect.appendChild(o); }
+  async function setBasemap(id) {
+    const b = BASEMAPS[id] || BASEMAPS.osm;
+    viewer.imageryLayers.removeAll();
+    try {
+      const provider = await b.make();
+      if (provider) { const layer = viewer.imageryLayers.addImageryProvider(provider); Object.assign(layer, b.tune || {}); }
+    } catch (e) { console.error("basemap failed", e); if (id !== "osm") return setBasemap("osm"); }
+    basemapSelect.value = id; store.set("basemap", id); render();
+  }
+  basemapSelect.addEventListener("change", e => setBasemap(e.target.value));
+  setBasemap(BASEMAPS[store.get("basemap")] ? store.get("basemap") : "osm");
+
+  // ---------------------------------------------------------------- collapsible panel
+  function setCollapsed(on) { document.body.classList.toggle("collapsed", on); store.set("panel", on ? "collapsed" : "open"); render(); }
+  $("panel-close").addEventListener("click", () => setCollapsed(true));
+  $("panel-open").addEventListener("click", () => setCollapsed(false));
+  if (store.get("panel") === "collapsed") setCollapsed(true);
 
   // fixed light from the south-west, 45° up, expressed in ECEF at Glasgow
   const enu = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(-4.25, 55.86));

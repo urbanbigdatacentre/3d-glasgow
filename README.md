@@ -82,7 +82,13 @@ then open http://localhost:8765/.
 
 ## Dashboard notes
 
-* Basemap: OpenStreetMap standard tiles (fine for light use with attribution). For a production
-  deployment consider the OS Maps API (free OS Data Hub key) or another keyed provider.
+* Basemaps: OpenStreetMap (colour or greyscale) needs no key and is fine for light use with attribution.
+  Two optional keys at the top of the script in `index.html` unlock more: `OS_MAPS_API_KEY`
+  (free OS OpenData plan at osdatahub.os.uk: OS Light / Road / Outdoor styles) and `CESIUM_ION_TOKEN`
+  (free Cesium ion account: Bing aerial imagery, and Cesium World Terrain if terrain is added later).
+  The chosen basemap and the panel state are remembered per browser.
+* Terrain: none yet. Options are Cesium World Terrain (ion token) or self-hosted quantized-mesh tiles
+  built from the UBDC 0.5 m DTM / OS Terrain 50. Either needs the tiles rebuilt with `--no-flatten`
+  plus the ODN-to-ellipsoid (OSGM15) height offset so buildings sit on the ground.
 * Colours: building height classes use a single-hue ordinal ramp; LoD mode uses two categorical hues.
 * Zenodo download/view counts are fetched live from the Zenodo API, with a snapshot fallback.
