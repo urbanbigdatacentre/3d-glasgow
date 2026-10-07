@@ -14,8 +14,9 @@
     color-scheme: light;
     --surface: #fcfcfb; --plane: #f9f9f7; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
     --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,.10); --link: #2a78d6;
-    --h1: #86b6ef; --h2: #5598e7; --h3: #2a78d6; --h4: #1c5cab; --h5: #0d366b; --nodata: #c3c2b7;
-    --lod1: #eb6834; --lod2: #2a78d6; --select: #eda100;
+    /* building height classes: pale sand for bungalows up to deep red for towers (lightness falls monotonically) */
+    --h1: #f4dca0; --h2: #f6b65b; --h3: #ef8137; --h4: #d9412b; --h5: #8b1a3b; --nodata: #c3c2b7;
+    --lod1: #eb6834; --lod2: #2a78d6; --select: #2a78d6;
   }
   html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--plane); }
   body { font: 13.5px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); }
@@ -161,13 +162,14 @@
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   // Height classes: ordinal, one hue light->dark (documented ramp steps 250/350/450/550/700).
   const CLASSES = [
-    { max: 6,  color: css("--h1"), label: "< 6" },
-    { max: 10, color: css("--h2"), label: "6 – 10" },
-    { max: 15, color: css("--h3"), label: "10 – 15" },
-    { max: 25, color: css("--h4"), label: "15 – 25" },
-    { max: Infinity, color: css("--h5"), label: "≥ 25" },
+    { max: 6,  color: css("--h1"), label: "< 6 m · 1–2 storeys" },
+    { max: 10, color: css("--h2"), label: "6 – 10 m · 2–3 storeys" },
+    { max: 15, color: css("--h3"), label: "10 – 15 m · tenements" },
+    { max: 25, color: css("--h4"), label: "15 – 25 m · 5–8 storeys" },
+    { max: Infinity, color: css("--h5"), label: "≥ 25 m · towers" },
   ];
   const NODATA = css("--nodata"), LOD1 = css("--lod1"), LOD2 = css("--lod2"), SELECT = css("--select");
+  let selectColor = SELECT;                                   // highlight colour; swapped per colour mode
   const classColor = h => (h === undefined || h === null || isNaN(h)) ? NODATA : CLASSES.find(c => h < c.max).color;
   const $ = id => document.getElementById(id);
   const fmt = n => n.toLocaleString("en-GB");
@@ -297,15 +299,17 @@
   }
   function applyColour(mode) {
     legend.textContent = "";
+    selectColor = SELECT;
     if (mode === "height") {
       const conditions = [["${height} === undefined", `color('${NODATA}')`]];
       for (const c of CLASSES) conditions.push([c.max === Infinity ? "true" : "${height} < " + c.max, `color('${c.color}')`]);
       tileset.style = new Cesium.Cesium3DTileStyle({ color: { conditions } });
-      for (const c of CLASSES) legendRow(c.color, c.label + " m");
+      for (const c of CLASSES) legendRow(c.color, c.label);
       legendRow(NODATA, "no height");
     } else if (mode === "lod") {
       tileset.style = new Cesium.Cesium3DTileStyle({ color: { conditions: [["${lod} === 2", `color('${LOD2}')`], ["true", `color('${LOD1}')`]] } });
       legendRow(LOD2, "LoD2 (roof shapes, city centre)"); legendRow(LOD1, "LoD1 (extruded footprints)");
+      selectColor = "#1baf7a";                                 // aqua: distinct from both LoD hues
     } else {
       tileset.style = new Cesium.Cesium3DTileStyle({ color: "color('#d9d7cf')" });
     }
@@ -339,7 +343,7 @@
     if (picked) { picked.color = Cesium.Color.WHITE; picked = null; }
     sel.textContent = "";
     if (obj instanceof Cesium.Cesium3DTileFeature) {
-      picked = obj; obj.color = Cesium.Color.fromCssColorString(SELECT);
+      picked = obj; obj.color = Cesium.Color.fromCssColorString(selectColor);
       const table = document.createElement("table");
       for (const id of obj.getPropertyIds()) {
         let v = obj.getProperty(id);
