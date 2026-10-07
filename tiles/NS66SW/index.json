@@ -1,0 +1,92 @@
+{
+ "tile": "NS66SW",
+ "origin_bng": [
+  260000,
+  660000
+ ],
+ "root_region": [
+  -0.07397529474118328,
+  0.9741186347845956,
+  -0.07253421362567941,
+  0.9749274637067917,
+  0.0,
+  47.994
+ ],
+ "flattened": true,
+ "compressed": true,
+ "crs_note": "Inverse of British National Grid + OSGB36 to WGS 84 (6) + axis order change (2D) (accuracy 2.0 m)",
+ "height_bins": [
+  0,
+  3,
+  6,
+  9,
+  12,
+  15,
+  20,
+  30,
+  50
+ ],
+ "lod1": {
+  "buildings": 10541,
+  "cells": 70,
+  "triangles": 264800,
+  "vertices": 153390,
+  "bytes": 1839880,
+  "height_mean_m": 6.343198335333701,
+  "height_median_m": 6.29154035339,
+  "height_hist": [
+   573,
+   3600,
+   5377,
+   667,
+   247,
+   52,
+   14,
+   11,
+   0
+  ],
+  "footprint_area_total_m2": 4077709.1526215747,
+  "tallest": {
+   "uid": "NS66SW_1957",
+   "height": 41.9075601575
+  },
+  "bbox_bng": [
+   259944.4474,
+   659987.6216,
+   265081.395,
+   665035.5396
+  ]
+ },
+ "lod2": {
+  "buildings": 10592,
+  "cells": 259,
+  "triangles": 767488,
+  "vertices": 2396500,
+  "bytes": 4777512,
+  "height_mean_m": 6.337468967088463,
+  "height_median_m": 6.29094373093,
+  "height_hist": [
+   573,
+   3592,
+   5366,
+   664,
+   246,
+   50,
+   13,
+   11,
+   0
+  ],
+  "footprint_area_total_m2": 3876454.421381347,
+  "tallest": {
+   "uid": "NS66SW_2137",
+   "height": 51.6768684387
+  },
+  "bbox_bng": [
+   259944.4474,
+   659987.6216,
+   265081.395,
+   665035.5396
+  ]
+ },
+ "built": "2026-10-07 17:18"
+}

@@ -1,0 +1,483 @@
+{
+ "built": "2026-10-07",
+ "tiles": 23,
+ "tiles_with_lod2": 4,
+ "totals": {
+  "buildings": 119765,
+  "buildings_lod2": 38165,
+  "triangles_lod1": 3633495,
+  "triangles_lod2": 3416608,
+  "mb_lod1": 23.4,
+  "mb_lod2": 20.2,
+  "mb_total": 43.6,
+  "glbs": 1923,
+  "footprint_km2": 39.36
+ },
+ "height": {
+  "bins": [
+   0,
+   3,
+   6,
+   8,
+   10,
+   12,
+   15,
+   20,
+   25,
+   30,
+   40,
+   50
+  ],
+  "hist": [
+   13908,
+   48100,
+   47979,
+   4142,
+   2467,
+   1871,
+   834,
+   190,
+   87,
+   78,
+   46,
+   63
+  ],
+  "n": 119765,
+  "median_m": 5.9,
+  "mean_m": 5.9,
+  "p90_m": 7.5
+ },
+ "tallest": {
+  "height_max_m": 92.3,
+  "uid": "NS56SE_97",
+  "tile": "NS56SE",
+  "lon": -4.25652,
+  "lat": 55.856593
+ },
+ "root_region_deg": [
+  -4.41047,
+  55.77255,
+  -4.05591,
+  55.93556
+ ],
+ "focus": {
+  "lon": -4.25551,
+  "lat": 55.8519
+ },
+ "per_tile": [
+  {
+   "tile": "NS66NW",
+   "buildings": 11586,
+   "lod2": true,
+   "median_height_m": 6.2,
+   "footprint_km2": 2.957,
+   "mb": 6.0,
+   "centre_lon": -4.19933,
+   "centre_lat": 55.88062,
+   "region_deg": [
+    -4.24066,
+    55.85768,
+    -4.15801,
+    55.90355
+   ],
+   "tallest_m": 75.1,
+   "tallest_uid": "NS66NW_1058"
+  },
+  {
+   "tile": "NS66SW",
+   "buildings": 10541,
+   "lod2": true,
+   "median_height_m": 6.3,
+   "footprint_km2": 4.078,
+   "mb": 6.6,
+   "centre_lon": -4.19719,
+   "centre_lat": 55.83606,
+   "region_deg": [
+    -4.23847,
+    55.81289,
+    -4.1559,
+    55.85923
+   ],
+   "tallest_m": 51.7,
+   "tallest_uid": "NS66SW_2137"
+  },
+  {
+   "tile": "NS66SE",
+   "buildings": 10413,
+   "lod2": false,
+   "median_height_m": 5.8,
+   "footprint_km2": 2.244,
+   "mb": 1.8,
+   "centre_lon": -4.11683,
+   "centre_lat": 55.83732,
+   "region_deg": [
+    -4.15832,
+    55.81433,
+    -4.07534,
+    55.86032
+   ],
+   "tallest_m": 64.1,
+   "tallest_uid": "NS66SE_4275"
+  },
+  {
+   "tile": "NS55NE",
+   "buildings": 10162,
+   "lod2": false,
+   "median_height_m": 5.0,
+   "footprint_km2": 2.583,
+   "mb": 2.0,
+   "centre_lon": -4.27483,
+   "centre_lat": 55.79306,
+   "region_deg": [
+    -4.31584,
+    55.77336,
+    -4.23382,
+    55.81277
+   ],
+   "tallest_m": 47.2,
+   "tallest_uid": "NS55NE_2884"
+  },
+  {
+   "tile": "NS56NW",
+   "buildings": 9792,
+   "lod2": false,
+   "median_height_m": 6.2,
+   "footprint_km2": 4.387,
+   "mb": 1.9,
+   "centre_lon": -4.35908,
+   "centre_lat": 55.8781,
+   "region_deg": [
+    -4.40136,
+    55.85501,
+    -4.31681,
+    55.90119
+   ],
+   "tallest_m": 64.6,
+   "tallest_uid": "NS56NW_3792"
+  },
+  {
+   "tile": "NS56SW",
+   "buildings": 9602,
+   "lod2": false,
+   "median_height_m": 6.3,
+   "footprint_km2": 2.623,
+   "mb": 1.7,
+   "centre_lon": -4.35632,
+   "centre_lat": 55.83319,
+   "region_deg": [
+    -4.3974,
+    55.80981,
+    -4.31524,
+    55.85657
+   ],
+   "tallest_m": 64.7,
+   "tallest_uid": "NS56SW_9178"
+  },
+  {
+   "tile": "NS57SW",
+   "buildings": 8616,
+   "lod2": false,
+   "median_height_m": 5.6,
+   "footprint_km2": 2.224,
+   "mb": 1.6,
+   "centre_lon": -4.36179,
+   "centre_lat": 55.91614,
+   "region_deg": [
+    -4.40267,
+    55.89965,
+    -4.32092,
+    55.93262
+   ],
+   "tallest_m": 56.8,
+   "tallest_uid": "NS57SW_5359"
+  },
+  {
+   "tile": "NS56SE",
+   "buildings": 8571,
+   "lod2": true,
+   "median_height_m": 6.2,
+   "footprint_km2": 4.579,
+   "mb": 8.0,
+   "centre_lon": -4.27701,
+   "centre_lat": 55.83471,
+   "region_deg": [
+    -4.31835,
+    55.81126,
+    -4.23568,
+    55.85816
+   ],
+   "tallest_m": 92.3,
+   "tallest_uid": "NS56SE_97"
+  },
+  {
+   "tile": "NS55NW",
+   "buildings": 7751,
+   "lod2": false,
+   "median_height_m": 5.7,
+   "footprint_km2": 1.805,
+   "mb": 1.4,
+   "centre_lon": -4.35436,
+   "centre_lat": 55.79193,
+   "region_deg": [
+    -4.39543,
+    55.77255,
+    -4.31329,
+    55.81131
+   ],
+   "tallest_m": 19.7,
+   "tallest_uid": "NS55NW_659"
+  },
+  {
+   "tile": "NS56NE",
+   "buildings": 7368,
+   "lod2": true,
+   "median_height_m": 6.5,
+   "footprint_km2": 5.388,
+   "mb": 7.6,
+   "centre_lon": -4.27963,
+   "centre_lat": 55.87914,
+   "region_deg": [
+    -4.32096,
+    55.85588,
+    -4.2383,
+    55.90241
+   ],
+   "tallest_m": 82.4,
+   "tallest_uid": "NS56NE_5858"
+  },
+  {
+   "tile": "NS67SW",
+   "buildings": 4812,
+   "lod2": false,
+   "median_height_m": 5.0,
+   "footprint_km2": 1.091,
+   "mb": 0.9,
+   "centre_lon": -4.20171,
+   "centre_lat": 55.91916,
+   "region_deg": [
+    -4.24122,
+    55.90279,
+    -4.16219,
+    55.93552
+   ],
+   "tallest_m": 21.9,
+   "tallest_uid": "NS67SW_3295"
+  },
+  {
+   "tile": "NS66NE",
+   "buildings": 4452,
+   "lod2": false,
+   "median_height_m": 6.0,
+   "footprint_km2": 1.374,
+   "mb": 0.9,
+   "centre_lon": -4.11948,
+   "centre_lat": 55.88006,
+   "region_deg": [
+    -4.16017,
+    55.85884,
+    -4.07878,
+    55.90129
+   ],
+   "tallest_m": 37.2,
+   "tallest_uid": "NS66NE_2872"
+  },
+  {
+   "tile": "NS65NW",
+   "buildings": 3624,
+   "lod2": false,
+   "median_height_m": 6.0,
+   "footprint_km2": 0.912,
+   "mb": 0.7,
+   "centre_lon": -4.19553,
+   "centre_lat": 55.79478,
+   "region_deg": [
+    -4.23561,
+    55.7751,
+    -4.15546,
+    55.81445
+   ],
+   "tallest_m": 53.9,
+   "tallest_uid": "NS65NW_2684"
+  },
+  {
+   "tile": "NS57SE",
+   "buildings": 2929,
+   "lod2": false,
+   "median_height_m": 4.9,
+   "footprint_km2": 0.734,
+   "mb": 0.6,
+   "centre_lon": -4.28208,
+   "centre_lat": 55.91749,
+   "region_deg": [
+    -4.32256,
+    55.90134,
+    -4.2416,
+    55.93364
+   ],
+   "tallest_m": 46.5,
+   "tallest_uid": "NS57SE_2549"
+  },
+  {
+   "tile": "NS76SW",
+   "buildings": 2573,
+   "lod2": false,
+   "median_height_m": 5.9,
+   "footprint_km2": 0.648,
+   "mb": 0.4,
+   "centre_lon": -4.06755,
+   "centre_lat": 55.83818,
+   "region_deg": [
+    -4.07855,
+    55.8155,
+    -4.05656,
+    55.86085
+   ],
+   "tallest_m": 30.1,
+   "tallest_uid": "NS76SW_1108"
+  },
+  {
+   "tile": "NS65NE",
+   "buildings": 2204,
+   "lod2": false,
+   "median_height_m": 5.8,
+   "footprint_km2": 0.425,
+   "mb": 0.4,
+   "centre_lon": -4.1249,
+   "centre_lat": 55.80658,
+   "region_deg": [
+    -4.156,
+    55.79825,
+    -4.09379,
+    55.81491
+   ],
+   "tallest_m": 33.5,
+   "tallest_uid": "NS65NE_666"
+  },
+  {
+   "tile": "NS46SE",
+   "buildings": 1146,
+   "lod2": false,
+   "median_height_m": 5.9,
+   "footprint_km2": 0.271,
+   "mb": 0.2,
+   "centre_lon": -4.40044,
+   "centre_lat": 55.8322,
+   "region_deg": [
+    -4.40579,
+    55.80972,
+    -4.3951,
+    55.85469
+   ],
+   "tallest_m": 19.7,
+   "tallest_uid": "NS46SE_352"
+  },
+  {
+   "tile": "NS46NE",
+   "buildings": 863,
+   "lod2": false,
+   "median_height_m": 6.0,
+   "footprint_km2": 0.27,
+   "mb": 0.2,
+   "centre_lon": -4.40287,
+   "centre_lat": 55.87717,
+   "region_deg": [
+    -4.4075,
+    55.85454,
+    -4.39825,
+    55.89981
+   ],
+   "tallest_m": 41.6,
+   "tallest_uid": "NS46NE_792"
+  },
+  {
+   "tile": "NS47SE",
+   "buildings": 843,
+   "lod2": false,
+   "median_height_m": 5.9,
+   "footprint_km2": 0.293,
+   "mb": 0.2,
+   "centre_lon": -4.40561,
+   "centre_lat": 55.91514,
+   "region_deg": [
+    -4.41047,
+    55.89932,
+    -4.40074,
+    55.93096
+   ],
+   "tallest_m": 40.1,
+   "tallest_uid": "NS47SE_741"
+  },
+  {
+   "tile": "NS67SE",
+   "buildings": 666,
+   "lod2": false,
+   "median_height_m": 5.2,
+   "footprint_km2": 0.161,
+   "mb": 0.1,
+   "centre_lon": -4.15778,
+   "centre_lat": 55.92155,
+   "region_deg": [
+    -4.16244,
+    55.90753,
+    -4.15312,
+    55.93556
+   ],
+   "tallest_m": 12.4,
+   "tallest_uid": "NS67SE_487"
+  },
+  {
+   "tile": "NS75NW",
+   "buildings": 487,
+   "lod2": false,
+   "median_height_m": 5.3,
+   "footprint_km2": 0.133,
+   "mb": 0.1,
+   "centre_lon": -4.06607,
+   "centre_lat": 55.80951,
+   "region_deg": [
+    -4.07622,
+    55.80323,
+    -4.05591,
+    55.81579
+   ],
+   "tallest_m": 8.4,
+   "tallest_uid": "NS75NW_495"
+  },
+  {
+   "tile": "NS45NE",
+   "buildings": 432,
+   "lod2": false,
+   "median_height_m": 5.7,
+   "footprint_km2": 0.111,
+   "mb": 0.1,
+   "centre_lon": -4.3987,
+   "centre_lat": 55.80406,
+   "region_deg": [
+    -4.4029,
+    55.79813,
+    -4.3945,
+    55.80999
+   ],
+   "tallest_m": 13.0,
+   "tallest_uid": "NS45NE_364"
+  },
+  {
+   "tile": "NS76NW",
+   "buildings": 332,
+   "lod2": false,
+   "median_height_m": 5.6,
+   "footprint_km2": 0.071,
+   "mb": 0.1,
+   "centre_lon": -4.07016,
+   "centre_lat": 55.87822,
+   "region_deg": [
+    -4.0806,
+    55.86065,
+    -4.05971,
+    55.89579
+   ],
+   "tallest_m": 17.8,
+   "tallest_uid": "NS76NW_329"
+  }
+ ]
+}
