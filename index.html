@@ -186,8 +186,14 @@
 
   const status = $("status");
   let tileset;
+  // Tile requests inherit this retry policy: a CDN hiccup (5xx or a dropped connection) is retried
+  // up to three times after a short pause instead of leaving a hole in the city.
+  const tilesResource = new Cesium.Resource({
+    url: TILESET_URL, retryAttempts: 3,
+    retryCallback: (res, err) => new Promise(ok => setTimeout(() => ok(!err || !err.statusCode || err.statusCode >= 500), 1500)),
+  });
   try {
-    tileset = await Cesium.Cesium3DTileset.fromUrl(TILESET_URL, { maximumScreenSpaceError: 16 });
+    tileset = await Cesium.Cesium3DTileset.fromUrl(tilesResource, { maximumScreenSpaceError: 16 });
   } catch (e) { status.textContent = "Failed to load tileset: " + e; console.error(e); return; }
   scene.primitives.add(tileset);
   tileset.customShader = new Cesium.CustomShader({            // flat shading from screen-space derivatives (GLBs carry no normals)
